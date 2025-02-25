@@ -1,0 +1,5 @@
+# Project exclude paths
+/commons/target/
+/commons-entity/target/
+/commons-mapper/target/
+/security/target/
