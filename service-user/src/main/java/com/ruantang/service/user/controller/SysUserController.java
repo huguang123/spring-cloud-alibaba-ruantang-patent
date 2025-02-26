@@ -20,6 +20,12 @@ public class SysUserController {
     @Resource
     private SysUserService sysUserService;
 
+    @ApiOperation("测试接口")
+    @GetMapping("/test")
+    public ApiResult<String> test() {
+        return ApiResult.success("测试接口成功");
+    }
+
 
 
 

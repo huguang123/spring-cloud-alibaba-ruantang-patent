@@ -81,7 +81,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         HashMap<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", token);
         //将用户信息存入redis缓存
-        redisService.set("login" + token, userDetails);
+        redisService.set("AUTH:TOKEN:" + userDetails.getUsername(), token);
 
         return tokenMap;
     }
