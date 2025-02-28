@@ -12,14 +12,12 @@
     <description>用户服务模块</description>
 
     <dependencies>
-
         <!--通用的业务逻辑-->
         <dependency>
             <groupId>com.ruantang</groupId>
             <artifactId>common-service</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-
         <!--安全组件-->
         <dependency>
             <groupId>org.ruantang</groupId>
@@ -66,12 +64,6 @@
             <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
         </dependency>
         <!-- Spring Cloud End -->
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
 
     </dependencies>
 
