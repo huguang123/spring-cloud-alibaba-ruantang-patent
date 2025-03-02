@@ -20,6 +20,8 @@
         <module>commons-entity</module>
         <module>commons-mapper</module>
         <module>security</module>
+        <module>service-user</module>
+        <module>common-service</module>
     </modules>
 
     <!--统一版本控制-->
@@ -211,7 +213,7 @@
         <repository>
             <id>aliyun-repos</id>
             <name>Aliyun Repository</name>
-            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <url>https://maven.aliyun.com/nexus/content/groups/public</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -225,7 +227,7 @@
         <pluginRepository>
             <id>aliyun-repos</id>
             <name>Aliyun Repository</name>
-            <url>http://maven.aliyun.com/nexus/content/groups/public</url>
+            <url>https://maven.aliyun.com/nexus/content/groups/public</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
