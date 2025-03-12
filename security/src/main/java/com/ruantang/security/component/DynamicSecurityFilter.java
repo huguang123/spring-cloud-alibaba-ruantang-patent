@@ -1,6 +1,9 @@
 package com.ruantang.security.component;
 
 import com.ruantang.security.config.IgnoreUrlsConfig;
+import jakarta.annotation.Resource;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.SecurityMetadataSource;
@@ -10,9 +13,6 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.PathMatcher;
 
-import javax.annotation.Resource;
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 /**
@@ -41,7 +41,7 @@ public class DynamicSecurityFilter extends AbstractSecurityInterceptor implement
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
-        FilterInvocation fi = new FilterInvocation(servletRequest, servletResponse, filterChain);
+        FilterInvocation fi = new FilterInvocation(request, servletResponse, filterChain);
         //OPTIONS请求直接放行
         if (request.getMethod().equals(HttpMethod.OPTIONS.toString())) {
             fi.getChain().doFilter(fi.getRequest(), fi.getResponse());

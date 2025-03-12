@@ -13,6 +13,8 @@ import com.ruantang.service.user.domain.SysUserDetails;
 import com.ruantang.service.user.model.dto.SysUserRegisterDTO;
 import com.ruantang.service.user.service.AuthService;
 import com.ruantang.service.user.service.SysRolesService;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -24,8 +26,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,10 +89,14 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
 
     @Override
     public Boolean logout() {
-
-        Boolean authorization = redisService.del("login" + request.getHeader("Authorization"));
-
-        return authorization;
+        //请求头获取token，通过token获取用户名，删除redis缓存
+        String token = request.getHeader("Authorization");
+        String username = jwtTokenUtil.getUserNameFromToken(token);
+        if (redisService.hasKey("AUTH:TOKEN:" + username)) {
+            redisService.del("AUTH:TOKEN:" + username);
+            return true;
+        }
+        return false;
     }
 
     @Override

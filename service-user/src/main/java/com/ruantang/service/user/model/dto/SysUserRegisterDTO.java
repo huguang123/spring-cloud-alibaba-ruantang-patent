@@ -1,10 +1,10 @@
 package com.ruantang.service.user.model.dto;
 
 import io.swagger.annotations.ApiModelProperty;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
 
 /**
  * 注册DTO

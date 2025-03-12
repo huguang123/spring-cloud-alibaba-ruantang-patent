@@ -44,7 +44,7 @@ public class UserSpringSecurityConfig extends SpringSecurityConfig {
      */
     @Bean
     @Override
-    protected UserDetailsService userDetailsService() {
+    public UserDetailsService userDetailsService() {
         return loginName -> {
             // 获取登录用户信息
             SysUsers admin = sysUserService.getOne(new LambdaQueryWrapper<SysUsers>().eq(SysUsers::getLoginName, loginName));
