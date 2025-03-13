@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
 @ApiModel(value = "角色权限映射对象",description = "角色权限映射")
 public class RelRolesPerm {
 
-    @TableId(value = "id",type = IdType.AUTO)
+    @TableId(value = "id",type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "主键id")
     private Long id;
 

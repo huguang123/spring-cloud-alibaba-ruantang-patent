@@ -61,6 +61,7 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
 
         // 2. 获取Token
         String token = resolveToken(request);
+        System.out.println("token:"+token);
         if (token == null) {
             return writeUnauthResponse(exchange, "缺失认证凭证");
         }

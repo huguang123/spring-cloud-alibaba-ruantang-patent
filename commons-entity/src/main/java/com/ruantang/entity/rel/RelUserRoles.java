@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
 @ApiModel(value = "用户角色映射对象",description = "用户角色映射")
 public class RelUserRoles {
 
-    @TableId(value = "id",type = IdType.AUTO)
+    @TableId(value = "id",type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "主键id")
     private Long id;
 

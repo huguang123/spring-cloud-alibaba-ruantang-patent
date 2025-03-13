@@ -5,12 +5,15 @@ import cn.hutool.core.util.StrUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +32,7 @@ import java.util.Map;
  * @since 2018/4/26
  */
 @Component
+@Data
 public class JwtTokenUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenUtil.class);
     private static final String CLAIM_KEY_USERNAME = "sub";
@@ -41,9 +45,9 @@ public class JwtTokenUtil {
     private String secret;
 
     /**
-     * Token失效时间 :60*60*24*7
+     * Token失效时间 :60*60*3
      */
-    @Value("${jwt.expiration:604800}")
+    @Value("${jwt.expiration:10800}")
     private Long expiration;
 
     /**
@@ -51,6 +55,13 @@ public class JwtTokenUtil {
      */
     @Value("${jwt.tokenHead:Bearer }")
     private String tokenHead;
+
+    private Key key;
+
+    public JwtTokenUtil(@Value("${jwt.secret:NOISIEST}") String secret) {
+        this.secret = secret;
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     /**
      * 生成JWT的token
@@ -61,7 +72,7 @@ public class JwtTokenUtil {
         return Jwts.builder()
                 .setClaims(claims)
                 .setExpiration(generateExpirationDate())
-                .signWith(SignatureAlgorithm.HS512, secret)
+                .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -73,8 +84,9 @@ public class JwtTokenUtil {
     private Claims getClaimsFromToken(String token) {
         Claims claims = null;
         try {
-            claims = Jwts.parser()
-                    .setSigningKey(secret)
+            claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
                     .parseClaimsJws(token)
                     .getBody();
         } catch (Exception e) {
@@ -99,7 +111,7 @@ public class JwtTokenUtil {
         String username;
         try {
             Claims claims = getClaimsFromToken(token);
-            username = claims.getSubject();
+            username = claims != null ? claims.getSubject() : null;
         } catch (Exception e) {
             username = null;
         }
@@ -114,7 +126,7 @@ public class JwtTokenUtil {
      */
     public boolean validateToken(String token, UserDetails userDetails) {
         String username = getUserNameFromToken(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return username != null && username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     /**
@@ -124,7 +136,7 @@ public class JwtTokenUtil {
      */
     private boolean isTokenExpired(String token) {
         Date expiredDate = getExpiredDateFromToken(token);
-        return expiredDate.before(new Date());
+        return expiredDate != null && expiredDate.before(new Date());
     }
 
     /**
@@ -134,7 +146,7 @@ public class JwtTokenUtil {
      */
     private Date getExpiredDateFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
-        return claims.getExpiration();
+        return claims != null ? claims.getExpiration() : null;
     }
 
     /**
@@ -188,9 +200,9 @@ public class JwtTokenUtil {
      */
     private boolean tokenRefreshJustBefore(String token, int time) {
         Claims claims = getClaimsFromToken(token);
-        Date created = claims.get(CLAIM_KEY_CREATED, Date.class);
+        Date created = claims != null ? claims.get(CLAIM_KEY_CREATED, Date.class) : null;
         Date refreshDate = new Date();
         //刷新时间在创建时间的指定时间内
-        return refreshDate.after(created) && refreshDate.before(DateUtil.offsetSecond(created, time));
+        return created != null && refreshDate.after(created) && refreshDate.before(DateUtil.offsetSecond(created, time));
     }
 }

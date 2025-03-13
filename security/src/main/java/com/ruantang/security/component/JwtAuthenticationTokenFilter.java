@@ -32,8 +32,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
 
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    private final JwtTokenUtil jwtTokenUtil;
 
     /**
      * 请求头
@@ -47,8 +46,9 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     @Value("${jwt.tokenHead:Bearer }")
     private String tokenHead;
 
-    public JwtAuthenticationTokenFilter(UserDetailsService userDetailsService) {
+    public JwtAuthenticationTokenFilter(UserDetailsService userDetailsService, JwtTokenUtil jwtTokenUtil) {
         this.userDetailsService = userDetailsService;
+        this.jwtTokenUtil = jwtTokenUtil;
     }
 
     @Override

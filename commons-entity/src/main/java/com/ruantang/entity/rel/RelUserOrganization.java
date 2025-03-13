@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
 @ApiModel(value = "用户组织映射对象", description = "用户组织映射")
 public class RelUserOrganization {
 
-    @TableId(value = "id",type = IdType.AUTO)
+    @TableId(value = "id",type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "主键id")
     private Long id;
 

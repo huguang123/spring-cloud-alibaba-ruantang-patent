@@ -19,7 +19,7 @@ public class SysOrganization implements Serializable {
 
     private static final long serialVersionUID = -3877846308871094601L;
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     @ApiModelProperty(value = "组织名")

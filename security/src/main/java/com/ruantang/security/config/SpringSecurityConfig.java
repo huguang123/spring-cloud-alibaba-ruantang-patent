@@ -2,6 +2,8 @@ package com.ruantang.security.config;
 
 import com.ruantang.security.component.*;
 import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +39,8 @@ import java.util.List;
 @EnableWebSecurity
 public abstract class SpringSecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SpringSecurityConfig.class);
+
     @Autowired(required = false)
     private DynamicSecurityService dynamicSecurityService;
 
@@ -55,11 +59,13 @@ public abstract class SpringSecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
+        log.info("进入service-user服务-static");
         return (web) -> web.ignoring().requestMatchers("/static/**");
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("进入service-user服务-securityFilterChain");
         // 禁用缓存
         http.headers().cacheControl();
         // 允许跨域请求的OPTIONS请求[跨域请求会先进行一次options请求]
@@ -69,6 +75,7 @@ public abstract class SpringSecurityConfig {
 
         // 白名单
         List<String> urls = ignoreUrlsConfig.getUrls();
+        log.info("白名单路径放行: {}", urls);
         for (String url : urls) {
             http.authorizeHttpRequests((requests) -> requests
                     .requestMatchers(url).permitAll()

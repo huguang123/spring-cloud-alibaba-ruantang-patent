@@ -61,27 +61,25 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
 
         //检查是否存在账号对应用户
         SysUsers sysUsers = sysUsersMapper.selectOne(new LambdaQueryWrapper<SysUsers>().eq(SysUsers::getLoginName, sysUserRegisterDTO.getLoginName()));
-        System.out.println(sysUsers.toString());
         if (Objects.isNull(sysUsers)) {
             throw new UsernameNotFoundException("用户名或密码错误");
         }
+
         //进行用户认证
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(sysUserRegisterDTO.getLoginName(), sysUserRegisterDTO.getPassword());
         Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
         //认证未通过
         if (Objects.isNull(authenticate)) {
-            System.out.println("密码错误");
             throw new UsernameNotFoundException("用户名或密码错误");
         }
 
         //通过验证，生成jwt
         UserDetails userDetails = new SysUserDetails(sysUsers, sysRolesService.getRolesList());
         String token = jwtTokenUtil.generateToken(userDetails);
-        System.out.println(token);
         HashMap<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", token);
-        //将用户信息存入redis缓存
-        redisService.set("AUTH:TOKEN:" + userDetails.getUsername(), token);
+        //将用户信息存入redis缓存，设置失效时间，退出登录时删除
+        redisService.set("AUTH:TOKEN:" + userDetails.getUsername(), token, jwtTokenUtil.getExpiration());
 
         return tokenMap;
     }

@@ -40,6 +40,7 @@ public class DynamicSecurityFilter extends AbstractSecurityInterceptor implement
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        System.out.println("错误位置");
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         FilterInvocation fi = new FilterInvocation(request, servletResponse, filterChain);
         //OPTIONS请求直接放行

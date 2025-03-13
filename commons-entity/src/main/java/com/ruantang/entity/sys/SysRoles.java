@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
 @ApiModel(value = "系统角色对象",description = "系统角色")
 public class SysRoles {
 
-    @TableId(value = "id",type = IdType.AUTO)
+    @TableId(value = "id",type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "主键id")
     private Long id;
 
