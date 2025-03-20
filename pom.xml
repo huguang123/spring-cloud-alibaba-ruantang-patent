@@ -22,6 +22,7 @@
         <module>security</module>
         <module>service-user</module>
         <module>common-service</module>
+        <module>service-prompt</module>
     </modules>
 
     <!--统一版本控制-->
