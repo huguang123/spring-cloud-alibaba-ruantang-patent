@@ -2,6 +2,7 @@ package com.ruantang.service.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruantang.entity.sys.SysUsers;
+import com.ruantang.service.user.model.dto.SysUserDTO;
 import com.ruantang.service.user.model.dto.SysUserRegisterDTO;
 
 import java.util.Map;
@@ -27,5 +28,5 @@ public interface AuthService extends IService<SysUsers> {
      * @param dto 注册DTO
      * @return
      */
-    SysUsers register(SysUserRegisterDTO dto);
+    SysUserDTO register(SysUserRegisterDTO dto);
 }

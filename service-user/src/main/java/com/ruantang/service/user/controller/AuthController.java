@@ -1,7 +1,9 @@
 package com.ruantang.service.user.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.ruantang.commons.api.ApiResult;
 import com.ruantang.entity.sys.SysUsers;
+import com.ruantang.service.user.model.dto.SysUserDTO;
 import com.ruantang.service.user.model.dto.SysUserRegisterDTO;
 import com.ruantang.service.user.service.AuthService;
 import io.swagger.annotations.Api;
@@ -48,11 +50,11 @@ public class AuthController {
 
     @ApiOperation("用户注册")
     @PostMapping(value = "/register")
-    public ApiResult<SysUsers> register(@Validated @RequestBody SysUserRegisterDTO dto) {
-        SysUsers sysUsers  = authService.register(dto);
-        if (sysUsers == null) {
+    public ApiResult<SysUserDTO> register(@Validated @RequestBody SysUserRegisterDTO dto) {
+        SysUserDTO sysUserDTO = authService.register(dto);
+        if (sysUserDTO == null) {
             return ApiResult.failed("注册失败");
         }
-        return ApiResult.success(sysUsers, "注册成功");
+        return ApiResult.success(sysUserDTO, "注册成功");
     }
 }

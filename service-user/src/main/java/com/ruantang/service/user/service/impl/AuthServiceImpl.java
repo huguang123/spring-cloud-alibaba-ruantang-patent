@@ -10,6 +10,7 @@ import com.ruantang.entity.sys.SysUsers;
 import com.ruantang.mapper.sys.SysUsersMapper;
 import com.ruantang.security.util.JwtTokenUtil;
 import com.ruantang.service.user.domain.SysUserDetails;
+import com.ruantang.service.user.model.dto.SysUserDTO;
 import com.ruantang.service.user.model.dto.SysUserRegisterDTO;
 import com.ruantang.service.user.service.AuthService;
 import com.ruantang.service.user.service.SysRolesService;
@@ -98,7 +99,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
     }
 
     @Override
-    public SysUsers register(SysUserRegisterDTO dto) {
+    public SysUserDTO register(SysUserRegisterDTO dto) {
         // 查询是否有相同用户名的用户
         QueryWrapper<SysUsers> wrapper = new QueryWrapper<>();
         wrapper.lambda().eq(SysUsers::getLoginName, dto.getLoginName());
@@ -123,6 +124,10 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         baseMapper.insert(sysUsers);
         // 不返回敏感数据
         sysUsers.setPassword("");
-        return sysUsers;
+        //实现sysUsers映射到sysUserDTO
+        SysUserDTO sysUserDTO = new SysUserDTO();
+        BeanUtils.copyProperties(sysUsers, sysUserDTO);
+
+        return sysUserDTO;
     }
 }
