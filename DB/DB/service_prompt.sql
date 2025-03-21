@@ -1,4 +1,4 @@
-# prom_doc_template_type
+# porm_template_parameter
 CREATE TABLE `porm_template_parameter`  (
                                             `id` bigint NOT NULL COMMENT '主键',
                                             `template_id` bigint NULL DEFAULT NULL COMMENT '关联模板表',
