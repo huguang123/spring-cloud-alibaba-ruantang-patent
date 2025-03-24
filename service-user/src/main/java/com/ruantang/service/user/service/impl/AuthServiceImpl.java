@@ -62,6 +62,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
 
         //检查是否存在账号对应用户
         SysUsers sysUsers = sysUsersMapper.selectOne(new LambdaQueryWrapper<SysUsers>().eq(SysUsers::getLoginName, sysUserRegisterDTO.getLoginName()));
+        System.out.println("sysUsers="+sysUsers);
         if (Objects.isNull(sysUsers)) {
             throw new UsernameNotFoundException("用户名或密码错误");
         }
@@ -113,7 +114,6 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         BeanUtils.copyProperties(dto, sysUsers);
         sysUsers.setUserName("用户" + RandomUtil.randomString(8).toUpperCase());
         sysUsers.setCreateTime(System.currentTimeMillis());
-        sysUsers.setIsDeleted(true);
 
         // 将密码进行加密操作
 //        passwordEncoder.

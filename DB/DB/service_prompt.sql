@@ -1,18 +1,3 @@
-# porm_template_parameter
-CREATE TABLE `porm_template_parameter`  (
-                                            `id` bigint NOT NULL COMMENT '主键',
-                                            `template_id` bigint NULL DEFAULT NULL COMMENT '关联模板表',
-                                            `param_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '参数建（例如user_input、${sensor_type}）',
-                                            `prom_role` int NULL DEFAULT NULL COMMENT '标识模板类型（0-系统提示词或1-用户提示词）',
-                                            `default_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '参数默认值（数据采集→偏差分析→模型修正）',
-                                            `required` int NULL DEFAULT 1 COMMENT '是否必填（1=是，0-否）',
-                                            `is_deleted` int NULL DEFAULT NULL COMMENT '删除状态（0：未删除，1：删除）',
-                                            `create_by` bigint NULL DEFAULT NULL COMMENT '创建人',
-                                            `create_time` bigint NOT NULL COMMENT '创建时间',
-                                            `update_time` bigint NOT NULL COMMENT '更新时间',
-                                            PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '模板参数表' ROW_FORMAT = Dynamic;
-
 # prom_doc_section_template
 CREATE TABLE `prom_doc_section_template`  (
                                               `id` bigint NOT NULL COMMENT '主键',
@@ -80,3 +65,17 @@ CREATE TABLE `prom_template`  (
                                   `update_time` bigint NOT NULL COMMENT '更新时间',
                                   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '提示词模板表' ROW_FORMAT = Dynamic;
+# porm_template_parameter
+CREATE TABLE `prom_template_parameter`  (
+                                                    `id` bigint NOT NULL COMMENT '主键',
+                                                    `template_id` bigint NULL DEFAULT NULL COMMENT '关联模板表',
+                                                    `param_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '变量名（例如user_input、${sensor_type}）',
+                                                    `prom_role` int NULL DEFAULT NULL COMMENT '标识模板类型（0-系统提示词或1-用户提示词）',
+                                                    `default_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '参数默认值（数据采集→偏差分析→模型修正）',
+                                                    `enter_reminder` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '输入提醒',
+                                                    `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '变量描述',
+                                                    `create_by` bigint NULL DEFAULT NULL COMMENT '创建人',
+                                                    `create_time` bigint NOT NULL COMMENT '创建时间',
+                                                    `update_time` bigint NOT NULL COMMENT '更新时间',
+                                                    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '模板参数表' ROW_FORMAT = Dynamic;

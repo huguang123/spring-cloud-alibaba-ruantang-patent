@@ -48,7 +48,6 @@ public class DocTemplateTypeServiceImpl extends ServiceImpl<DocTemplateTypeMappe
         if (request.getId() == null) {
             throw new RuntimeException("模板类型ID不能为空");
         }
-        
         DocTemplateType docTemplateType = getById(request.getId());
         if (docTemplateType == null) {
             throw new RuntimeException("模板类型不存在");

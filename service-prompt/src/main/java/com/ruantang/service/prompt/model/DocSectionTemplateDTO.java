@@ -32,4 +32,9 @@ public class DocSectionTemplateDTO {
      * 显示顺序
      */
     private Integer sortOrder;
+    
+    /**
+     * 关联的提示词模板信息
+     */
+    private PromTemplateDTO promptTemplate;
 } 

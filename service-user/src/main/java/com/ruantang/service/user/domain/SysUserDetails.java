@@ -61,6 +61,6 @@ public class SysUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return sysUsers.getIsDeleted();
+        return true;
     }
 }

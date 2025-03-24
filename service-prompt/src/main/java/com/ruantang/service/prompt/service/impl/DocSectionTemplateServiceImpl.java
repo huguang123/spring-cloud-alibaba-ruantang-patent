@@ -6,8 +6,11 @@ import com.ruantang.entity.prom.DocSectionTemplate;
 import com.ruantang.mapper.prom.DocSectionTemplateMapper;
 import com.ruantang.service.prompt.model.DocSectionTemplateDTO;
 import com.ruantang.service.prompt.model.DocSectionTemplateRequest;
+import com.ruantang.service.prompt.model.PromTemplateDTO;
 import com.ruantang.service.prompt.service.DocSectionTemplateService;
+import com.ruantang.service.prompt.service.PromTemplateService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +22,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class DocSectionTemplateServiceImpl extends ServiceImpl<DocSectionTemplateMapper, DocSectionTemplate> implements DocSectionTemplateService {
+
+    @Autowired
+    private PromTemplateService promTemplateService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -67,7 +73,15 @@ public class DocSectionTemplateServiceImpl extends ServiceImpl<DocSectionTemplat
             return null;
         }
         
-        return convertToDTO(docSectionTemplate);
+        DocSectionTemplateDTO dto = convertToDTO(docSectionTemplate);
+        
+        // 设置关联的提示词模板信息
+        if (docSectionTemplate.getPromptId() != null) {
+            PromTemplateDTO promptTemplate = promTemplateService.getTemplate(docSectionTemplate.getPromptId());
+            dto.setPromptTemplate(promptTemplate);
+        }
+        
+        return dto;
     }
 
     @Override
@@ -77,7 +91,17 @@ public class DocSectionTemplateServiceImpl extends ServiceImpl<DocSectionTemplat
         queryWrapper.orderByAsc(DocSectionTemplate::getSortOrder);
         
         List<DocSectionTemplate> list = list(queryWrapper);
-        return list.stream().map(this::convertToDTO).collect(Collectors.toList());
+        return list.stream().map(entity -> {
+            DocSectionTemplateDTO dto = convertToDTO(entity);
+            
+            // 设置关联的提示词模板信息
+            if (entity.getPromptId() != null) {
+                PromTemplateDTO promptTemplate = promTemplateService.getTemplate(entity.getPromptId());
+                dto.setPromptTemplate(promptTemplate);
+            }
+            
+            return dto;
+        }).collect(Collectors.toList());
     }
     
     /**

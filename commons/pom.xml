@@ -66,6 +66,12 @@
             <artifactId>jakarta.annotation-api</artifactId>
         </dependency>
         <!--Tools End-->
+        <!--进行全局Long转字符串-->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.2</version>
+        </dependency>
     </dependencies>
 
     <properties>
