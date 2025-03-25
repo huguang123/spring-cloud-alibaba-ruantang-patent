@@ -63,7 +63,7 @@ public class PromTemplateController {
      * @return 是否成功
      */
     @PatchMapping("/{id}/status")
-    public ApiResult<Void> updateStatus(@PathVariable("id") Long id, @RequestParam Boolean enabled) {
+    public ApiResult<Void> updateStatus(@PathVariable("id") Long id, @RequestParam("enabled") Boolean enabled) {
         boolean success = promTemplateService.updateStatus(id, enabled);
         return success ? ApiResult.success(null, "状态更新成功") : ApiResult.failed("状态更新失败");
     }
@@ -107,7 +107,7 @@ public class PromTemplateController {
      * @return 模板DTO列表
      */
     @GetMapping("/by-name")
-    public ApiResult<List<PromTemplateDTO>> getTemplatesByName(@RequestParam String name) {
+    public ApiResult<List<PromTemplateDTO>> getTemplatesByName(@RequestParam(name = "name", required = false) String name) {
         List<PromTemplateDTO> dtos = promTemplateService.getTemplatesByName(name);
         return ApiResult.success(dtos);
     }

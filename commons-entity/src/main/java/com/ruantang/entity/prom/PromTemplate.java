@@ -47,7 +47,7 @@ public class PromTemplate {
     /**
      * 状态（0：启用，1：禁用）
      */
-    private Integer status;
+    private Boolean enabled;
     
     /**
      * 创建人

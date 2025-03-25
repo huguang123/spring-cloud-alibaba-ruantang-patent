@@ -49,11 +49,6 @@ public class PromTemplateParameter {
      */
     private String description;
     
-    /**
-     * 是否必填（1=是，0-否）
-     */
-    private Integer required;
-    
 //    /**
 //     * 删除状态（0：删除，1：未删除）
 //     */

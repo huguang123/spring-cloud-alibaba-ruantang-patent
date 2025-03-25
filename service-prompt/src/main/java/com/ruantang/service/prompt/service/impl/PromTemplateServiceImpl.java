@@ -92,7 +92,7 @@ public class PromTemplateServiceImpl extends ServiceImpl<PromTemplateMapper, Pro
             throw new RuntimeException("模板不存在");
         }
         // 确保 enabled 不为 null，避免潜在的空指针异常
-        template.setStatus((enabled != null && enabled) ? 0 : 1);
+        template.setEnabled(enabled);
 
         template.setUpdateTime(System.currentTimeMillis());
         
