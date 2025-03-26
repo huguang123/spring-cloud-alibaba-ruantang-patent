@@ -15,10 +15,10 @@ public class AiApiConfig {
     /**
      * API基础URL
      */
-    private String baseUrl = "https://api.deepseek.com";
+    private String baseUrl;
     
     /**
      * API密钥
      */
-    private String apiKey = "sk-7fad7fecfda347deb8daf52ea77dc9e1";
+    private String apiKey;
 } 

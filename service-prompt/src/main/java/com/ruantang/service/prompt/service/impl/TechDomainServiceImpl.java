@@ -11,6 +11,7 @@ import com.ruantang.service.prompt.service.DocTemplateService;
 import com.ruantang.service.prompt.service.TechDomainService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class TechDomainServiceImpl extends ServiceImpl<TechDomainMapper, TechDomain> implements TechDomainService {
 
     @Autowired
+    @Lazy
     private DocTemplateService docTemplateService;
 
     @Override
