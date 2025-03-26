@@ -4,10 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruantang.entity.prom.TechDomain;
 import com.ruantang.mapper.prom.TechDomainMapper;
+import com.ruantang.service.prompt.model.DocTemplateDTO;
 import com.ruantang.service.prompt.model.TechDomainDTO;
 import com.ruantang.service.prompt.model.TechDomainRequest;
+import com.ruantang.service.prompt.service.DocTemplateService;
 import com.ruantang.service.prompt.service.TechDomainService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -20,6 +23,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class TechDomainServiceImpl extends ServiceImpl<TechDomainMapper, TechDomain> implements TechDomainService {
+
+    @Autowired
+    private DocTemplateService docTemplateService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -146,6 +152,15 @@ public class TechDomainServiceImpl extends ServiceImpl<TechDomainMapper, TechDom
             throw new RuntimeException("该领域下存在子级领域，不能直接删除");
         }
         
+        // 获取该技术领域下的所有文档模板
+        List<DocTemplateDTO> docTemplates = docTemplateService.getByDomainId(id);
+        
+        // 删除每个文档模板（文档模板服务中会级联删除其关联的分项）
+        for (DocTemplateDTO docTemplate : docTemplates) {
+            docTemplateService.deleteDocTemplate(docTemplate.getId());
+        }
+        
+        // 删除技术领域
         return removeById(id);
     }
 

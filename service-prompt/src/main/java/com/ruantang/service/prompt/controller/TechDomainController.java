@@ -84,7 +84,7 @@ public class TechDomainController {
      * 获取指定父级ID下的子技术领域
      */
     @GetMapping("/children")
-    public ApiResult<List<TechDomainDTO>> getChildren(@RequestParam(required = false) Long parentId) {
+    public ApiResult<List<TechDomainDTO>> getChildren(@RequestParam(name = "parentId",required = false) Long parentId) {
         List<TechDomainDTO> children = techDomainService.getChildrenByParentId(parentId);
         return ApiResult.success(children, "子技术领域获取成功");
     }
