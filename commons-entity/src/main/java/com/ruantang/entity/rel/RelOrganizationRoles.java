@@ -8,11 +8,11 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@ApiModel(value = "组织用户映射对象",description = "组织用户映射")
-@TableName(value = "rel_organization_user")
+@ApiModel(value = "组织权限映射对象",description = "组织权限映射")
+@TableName(value = "rel_organization_roles")
 @Data
 @EqualsAndHashCode
-public class RelOrganizationUser {
+public class RelOrganizationRoles {
 
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     @ApiModelProperty(value = "主键id")
@@ -22,6 +22,6 @@ public class RelOrganizationUser {
     private Long orgId;
 
     @ApiModelProperty(value = "角色id")
-    private Long rolesId;
+    private Long roleId;
 
 }

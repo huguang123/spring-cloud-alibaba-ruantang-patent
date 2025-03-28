@@ -1,8 +1,5 @@
-server:
-  port: 9600
-
-logging:
-  level:
-    com.alibaba.nacos: debug
+spring:
+  profiles:
+    active: dev #需要使用的配置文件的后缀
 
 

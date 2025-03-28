@@ -19,12 +19,12 @@ public class RelUserOrganization {
     private Long id;
 
     @ApiModelProperty(value = "角色id")
-    private Long rolesId;
+    private Long userId;
 
     @ApiModelProperty(value = "权限id")
-    private Long permsId;
+    private Long orgId;
 
-    @ApiModelProperty(value = "权限类型（0：可访问、1：可授权）")
-    private Integer rightType;
+//    @ApiModelProperty(value = "权限类型（0：可访问、1：可授权）")
+//    private Integer rightType;
 
 }

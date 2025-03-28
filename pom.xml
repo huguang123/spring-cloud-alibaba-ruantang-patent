@@ -21,8 +21,8 @@
         <module>commons-mapper</module>
         <module>security</module>
         <module>service-user</module>
-        <module>common-service</module>
         <module>service-prompt</module>
+        <module>common-service</module>
     </modules>
 
     <!--统一版本控制-->

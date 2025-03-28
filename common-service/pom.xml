@@ -11,9 +11,9 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
-        <spring-cloud-alibaba.version>2.2.10-RC1</spring-cloud-alibaba.version>
-        <spring-cloud.version>Hoxton.SR12</spring-cloud.version>
+        <spring-boot.version>3.2.1</spring-boot.version>
+        <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
+        <spring-cloud.version>2023.0.0</spring-cloud.version>
     </properties>
     <dependencies>
         <dependency>
