@@ -11,4 +11,4 @@ ADD target/ruantang-patent-gateway-0.0.1-SNAPSHOT.jar .
 EXPOSE 9000
 
 # 启动命令
-ENTRYPOINT ["java","-jar","/app/ruantang-patent-gateway-0.0.1-SNAPSHOT.jar","--spring.profiles.active=prod"]
+ENTRYPOINT ["java","-jar","/app/ruantang-patent-gateway-0.0.1-SNAPSHOT.jar","--spring.profiles.active=dev"]
