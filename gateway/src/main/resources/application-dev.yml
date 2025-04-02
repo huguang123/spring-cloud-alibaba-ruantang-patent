@@ -3,8 +3,8 @@ spring:
     name: gateway
   cloud:
     nacos:
-      server-addr: host.docker.internal:8848 # Docker专用访问宿主机的地址
-#      server-addr: 127.0.0.1:8848
+#      server-addr: host.docker.internal:9848 # Docker专用访问宿主机的地址
+      server-addr: 127.0.0.1:8848
       username: nacos
       password: nacos
       discovery:
@@ -28,6 +28,7 @@ logging:
 
 # 定义动态配置的默认值
 nacos:
-  namespace: ab2acd52-3d5b-4b57-b101-45f3a466d135  # 开发环境的namespace ID
+#  namespace: ab2acd52-3d5b-4b57-b101-45f3a466d135  # 开发环境的namespace ID
+  namespace: 103c85e3-4fa2-43b4-857d-daf3dab6d080  # 开发环境的namespace ID
 
 env: dev  # 定义环境标识

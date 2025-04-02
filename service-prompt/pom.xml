@@ -61,6 +61,13 @@
             <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
         </dependency>
 
+        <!-- 强制指定 grpc-netty-shaded 版本 -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty-shaded</artifactId>
+            <version>1.55.1</version>
+        </dependency>
+
     </dependencies>
     <dependencyManagement>
         <dependencies>

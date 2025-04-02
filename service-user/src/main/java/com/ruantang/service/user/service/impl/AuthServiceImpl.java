@@ -63,13 +63,16 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         //检查是否存在账号对应用户
         SysUsers sysUsers = sysUsersMapper.selectOne(new LambdaQueryWrapper<SysUsers>().eq(SysUsers::getLoginName, sysUserRegisterDTO.getLoginName()));
         System.out.println("sysUsers="+sysUsers);
+        System.out.println("测试日志更新时间提醒");
         if (Objects.isNull(sysUsers)) {
+            System.out.println("怪事件");
             throw new UsernameNotFoundException("用户名或密码错误");
         }
 
         //进行用户认证
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(sysUserRegisterDTO.getLoginName(), sysUserRegisterDTO.getPassword());
         Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+        System.out.println("authenticate="+authenticate);
         //认证未通过
         if (Objects.isNull(authenticate)) {
             throw new UsernameNotFoundException("用户名或密码错误");
@@ -78,6 +81,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         //通过验证，生成jwt
         UserDetails userDetails = new SysUserDetails(sysUsers, sysRolesService.getRolesList());
         String token = jwtTokenUtil.generateToken(userDetails);
+        System.out.println("token="+token);
         HashMap<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", token);
         //将用户信息存入redis缓存，设置失效时间，退出登录时删除

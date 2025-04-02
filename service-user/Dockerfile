@@ -8,7 +8,7 @@ WORKDIR /app
 ADD target/ruantang-patent-service-user-0.0.1-SNAPSHOT.jar .
 
 # 暴露端口
-EXPOSE {9600}
+EXPOSE 9600
 
 # 启动命令
-ENTRYPOINT ["java","-jar","/app/ruantang-patent-service-user-0.0.1-SNAPSHOT.jar","--spring.profiles.active=prod"]
+ENTRYPOINT ["java","-jar","/app/ruantang-patent-service-user-0.0.1-SNAPSHOT.jar","--spring.profiles.active=dev"]
