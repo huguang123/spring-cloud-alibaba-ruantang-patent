@@ -21,6 +21,9 @@ services:
       - mynetwork
     depends_on: # 本服务依赖的服务，控制启动先后顺序
       - gateway
+#      - mysql
+#      - redis
+#    restart: on-failure:3
 
   service-prompt:
     container_name: service-prompt

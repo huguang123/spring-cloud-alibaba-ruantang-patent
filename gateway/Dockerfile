@@ -5,10 +5,10 @@ FROM openjdk:17-jdk-alpine
 WORKDIR /app
 
 # 将 jar 包添加到工作目录，比如 target/yuoj-backend-user-service-0.0.1-SNAPSHOT.jar
-ADD target/ruantang-patent-gateway-0.0.1-SNAPSHOT.jar .
+ADD target/gateway-0.0.1-SNAPSHOT.jar .
 
 # 暴露端口
 EXPOSE 9000
 
 # 启动命令
-ENTRYPOINT ["java","-jar","/app/ruantang-patent-gateway-0.0.1-SNAPSHOT.jar","--spring.profiles.active=dev"]
+ENTRYPOINT ["java","-jar","/app/gateway-0.0.1-SNAPSHOT.jar","--spring.profiles.active=dev"]
