@@ -1,11 +1,11 @@
-package com.ruantang.commons.config;
+package com.ruantang.gateway.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
-import com.ruantang.commons.service.RedisService;
-import com.ruantang.commons.service.impl.RedisServiceImpl;
+import com.ruantang.gateway.service.RedisService;
+import com.ruantang.gateway.service.impl.RedisServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;

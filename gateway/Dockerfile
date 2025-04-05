@@ -11,4 +11,4 @@ ADD target/gateway-0.0.1-SNAPSHOT.jar .
 EXPOSE 9000
 
 # 启动命令
-ENTRYPOINT ["java","-jar","/app/gateway-0.0.1-SNAPSHOT.jar","--spring.profiles.active=dev"]
+ENTRYPOINT ["java","-jar","/app/gateway-0.0.1-SNAPSHOT.jar","--spring.profiles.active=test"]

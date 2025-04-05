@@ -3,18 +3,19 @@ spring:
     name: service-prompt  # 这个值决定了从Nacos加载的dataId
   cloud:
     nacos:
-      server-addr: 127.0.0.1:8848
+      #      server-addr: nacos:8848 # Docker专用访问宿主机的地址
+      server-addr: nacos:8848
       username: nacos
       password: nacos
       discovery:
-        namespace: ""
+        namespace: ${nacos.namespace:default-namespace-id}  # 使用动态配置
       config:
-        namespace: ""
+        namespace: ${nacos.namespace:default-namespace-id}  # 使用动态配置
         group: DEFAULT_GROUP
         file-extension: yaml  # 关键配置，指定加载yaml格式
         refresh-enabled: true  # 启用配置动态刷新
   config:
-    import: optional:nacos:${spring.application.name}.yaml
+    import: optional:nacos:${spring.application.name}-${env}.yaml  # 使用动态配置
 
 server:
   port: 9700
@@ -22,3 +23,9 @@ server:
 logging:
   level:
     com.alibaba.nacos: debug
+
+# 定义动态配置的默认值
+nacos:
+  namespace: 0bce2f35-bc70-4c1f-a108-bef928d1f1c4  # 测试环境的namespace ID
+
+env: test  # 定义环境标识

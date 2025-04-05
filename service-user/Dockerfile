@@ -11,4 +11,4 @@ ADD target/service-user-1.0-SNAPSHOT.jar .
 EXPOSE 9600
 
 # 启动命令
-ENTRYPOINT ["java","-jar","/app/service-user-1.0-SNAPSHOT.jar","--spring.profiles.active=dev"]
+ENTRYPOINT ["java","-jar","/app/service-user-1.0-SNAPSHOT.jar","--spring.profiles.active=test"]

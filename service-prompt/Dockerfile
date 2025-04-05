@@ -11,4 +11,4 @@ ADD target/service-prompt-0.0.1-SNAPSHOT.jar .
 EXPOSE 9700
 
 # 启动命令
-ENTRYPOINT ["java","-jar","/app/service-prompt-0.0.1-SNAPSHOT.jar","--spring.profiles.active=dev"]
+ENTRYPOINT ["java","-jar","/app/service-prompt-0.0.1-SNAPSHOT.jar","--spring.profiles.active=test"]

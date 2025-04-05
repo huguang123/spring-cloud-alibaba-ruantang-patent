@@ -17,9 +17,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @Api(value = "AuthController", description = "认证中心")
-@CrossOrigin(origins = "https://hubhukvice.sealos.run", allowCredentials = "true",
-        allowedHeaders = {"Content-Type", "Authorization"},
-        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
+//@CrossOrigin(origins = "https://hubhukvice.sealos.run", allowCredentials = "true",
+//        allowedHeaders = {"Content-Type", "Authorization"},
+//        methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class AuthController {
 
     @Resource
