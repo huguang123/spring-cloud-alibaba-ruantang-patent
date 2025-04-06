@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>控制台 - 技术交底书智能撰写系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/custom.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.31/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    
+    <!-- 安全检查脚本 -->
+    <script>
+        console.log('正在设置客户端代理服务...');
+        
+        // 创建客户端代理服务
+        window.proxyServices = {
+            ready: false,
+            callId: 0,
+            pendingCalls: new Map(),
+            
+            // 初始化代理服务
+            init: function() {
+                // 设置消息监听器
+                window.addEventListener('message', this.handleMessage.bind(this));
+                
+                // 向父页面请求服务信息
+                window.parent.postMessage({ type: 'request_services' }, '*');
+                
+                console.log('客户端代理服务初始化完成');
+            },
+            
+            // 处理来自父页面的消息
+            handleMessage: function(event) {
+                const message = event.data;
+                
+                // 接收服务信息
+                if (message && message.type === 'services') {
+                    console.log('收到服务信息:', message.data);
+                    this.ready = true;
+                    
+                    // 创建API代理
+                    if (!window.api) {
+                        window.api = this.createApiProxy();
+                    }
+                    
+                    // 创建Auth代理
+                    if (!window.auth) {
+                        window.auth = this.createAuthProxy();
+                    }
+                    
+                    // 创建Toast代理
+                    if (!window.toast) {
+                        window.toast = this.createToastProxy();
+                    }
+                }
+                
+                // 处理API响应
+                else if (message && message.type === 'api_response') {
+                    const { callId, result } = message;
+                    const resolver = this.pendingCalls.get(callId);
+                    
+                    if (resolver) {
+                        resolver(result);
+                        this.pendingCalls.delete(callId);
+                    }
+                }
+                
+                // 处理Auth响应
+                else if (message && message.type === 'auth_response') {
+                    const { callId, result } = message;
+                    const resolver = this.pendingCalls.get(callId);
+                    
+                    if (resolver) {
+                        resolver(result);
+                        this.pendingCalls.delete(callId);
+                    }
+                }
+                
+                // 处理错误信息
+                else if (message && message.type === 'error') {
+                    console.error('父页面返回错误:', message.error);
+                }
+            },
+            
+            // 创建API代理对象
+            createApiProxy: function() {
+                return new Proxy({}, {
+                    get: (target, prop) => {
+                        return (...args) => {
+                            return this.callParentApi(prop, args);
+                        };
+                    }
+                });
+            },
+            
+            // 创建Auth代理对象
+            createAuthProxy: function() {
+                return new Proxy({}, {
+                    get: (target, prop) => {
+                        return (...args) => {
+                            return this.callParentAuth(prop, args);
+                        };
+                    }
+                });
+            },
+            
+            // 创建Toast代理对象
+            createToastProxy: function() {
+                return new Proxy({}, {
+                    get: (target, prop) => {
+                        return (...args) => {
+                            return this.callParentToast(prop, args);
+                        };
+                    }
+                });
+            },
+            
+            // 调用父页面的API方法
+            callParentApi: function(method, params) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const callId = ++this.callId;
+                        
+                        // 存储Promise解析器
+                        this.pendingCalls.set(callId, resolve);
+                        
+                        // 向父页面发送API调用请求
+                        window.parent.postMessage({
+                            type: 'api_call',
+                            method,
+                            params,
+                            callId
+                        }, '*');
+                    } catch (error) {
+                        console.error(`调用父页面API方法 ${method} 失败:`, error);
+                        reject(error);
+                    }
+                });
+            },
+            
+            // 调用父页面的Auth方法
+            callParentAuth: function(method, params) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const callId = ++this.callId;
+                        
+                        // 存储Promise解析器
+                        this.pendingCalls.set(callId, resolve);
+                        
+                        // 向父页面发送Auth调用请求
+                        window.parent.postMessage({
+                            type: 'auth_call',
+                            method,
+                            params,
+                            callId
+                        }, '*');
+                    } catch (error) {
+                        console.error(`调用父页面Auth方法 ${method} 失败:`, error);
+                        reject(error);
+                    }
+                });
+            },
+            
+            // 调用父页面的Toast方法
+            callParentToast: function(method, params) {
+                try {
+                    // 向父页面发送Toast调用请求
+                    window.parent.postMessage({
+                        type: 'toast_call',
+                        method,
+                        params
+                    }, '*');
+                } catch (error) {
+                    console.error(`调用父页面Toast方法 ${method} 失败:`, error);
+                }
+            }
+        };
+        
+        // 初始化代理服务
+        window.proxyServices.init();
+        
+        // 应急备份服务（仅在通信失败时使用）
+        function setupEmergencyObjects(missingObjects) {
+            console.warn('设置应急服务作为备份');
+            
+            if (!window.api) {
+                window.api = {
+                    getUserInfo: async (userId) => {
+                        console.log('使用应急API获取用户信息:', userId);
+                        return {
+                            code: 200,
+                            message: '获取成功(应急模式)',
+                            data: {
+                                userId: userId || 'emergency_user',
+                                userName: '应急用户',
+                                userRole: 'user',
+                                userMail: 'emergency@example.com',
+                                lastLoginTime: new Date().toISOString()
+                            }
+                        };
+                    },
+                    getTechDomains: async () => {
+                        console.log('使用应急API获取技术领域');
+                        return {
+                            code: 200,
+                            message: '获取成功(应急模式)',
+                            data: [
+                                {
+                                    id: 'emergency_1',
+                                    domainName: '应急技术领域1',
+                                    level: 1
+                                },
+                                {
+                                    id: 'emergency_2',
+                                    domainName: '应急技术领域2',
+                                    level: 1
+                                }
+                            ]
+                        };
+                    }
+                };
+            }
+            
+            if (!window.auth) {
+                window.auth = {
+                    isAuthenticated: () => {
+                        return !!localStorage.getItem('auth_token');
+                    },
+                    getUserId: () => {
+                        return localStorage.getItem('user_id') || 'emergency_user';
+                    },
+                    getToken: () => {
+                        return localStorage.getItem('auth_token') || 'emergency_token';
+                    },
+                    clearAuth: () => {
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('user_id');
+                        return true;
+                    }
+                };
+            }
+            
+            if (!window.toast) {
+                window.toast = {
+                    success: (message) => {
+                        console.log('成功:', message);
+                        alert(message);
+                    },
+                    error: (message) => {
+                        console.error('错误:', message);
+                        alert('错误: ' + message);
+                    },
+                    warning: (message) => {
+                        console.warn('警告:', message);
+                        alert('警告: ' + message);
+                    },
+                    info: (message) => {
+                        console.info('信息:', message);
+                        alert(message);
+                    }
+                };
+            }
+        }
+        
+        // 设置超时，如果5秒内未收到父页面响应，则启用应急服务
+        setTimeout(() => {
+            if (!window.proxyServices.ready) {
+                console.warn('父页面未响应服务请求，启用应急服务');
+                setupEmergencyObjects();
+            }
+        }, 5000);
+    </script>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="min-h-screen bg-gray-50">
+        <!-- 侧边栏和内容区域 -->
+        <div class="flex h-screen bg-gray-50">
+            <!-- 侧边栏 -->
+            <div class="w-64 bg-gradient-to-b from-blue-600 to-blue-800 text-white flex flex-col shadow-xl">
+                <!-- 系统标题 -->
+                <div class="p-4 flex items-center border-b border-blue-500 bg-blue-700">
+                    <i class="fas fa-file-alt text-2xl mr-2"></i>
+                    <h1 class="font-bold text-lg">技术交底书系统</h1>
+                </div>
+                
+                <!-- 用户信息 -->
+                <div class="p-4 bg-blue-800 flex items-center border-b border-blue-700">
+                    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-xl font-bold">
+                        {{ userInfo.userName ? userInfo.userName.substring(0, 1).toUpperCase() : '?' }}
+                    </div>
+                    <div class="ml-3">
+                        <div class="font-medium">{{ userInfo.userName || '加载中...' }}</div>
+                        <div class="text-blue-300 text-xs">{{ userInfo.userRole === 'admin' ? '管理员' : '普通用户' }}</div>
+                    </div>
+                </div>
+                
+                <!-- 导航菜单 -->
+                <nav class="flex-1 overflow-y-auto py-4">
+                    <div class="px-4 mb-2 text-blue-300 text-xs font-medium uppercase tracking-wider">
+                        配置管理
+                    </div>
+                    <a href="#" @click.prevent="changeView('domain')" :class="['flex items-center px-4 py-3 text-blue-100 hover:bg-blue-700 transition-colors duration-200', currentView === 'domain' ? 'bg-blue-700 border-l-4 border-white' : '']">
+                        <i class="fas fa-sitemap w-6"></i>
+                        <span>技术领域管理</span>
+                    </a>
+                    <a href="#" @click.prevent="changeView('template')" :class="['flex items-center px-4 py-3 text-blue-100 hover:bg-blue-700 transition-colors duration-200', currentView === 'template' ? 'bg-blue-700 border-l-4 border-white' : '']">
+                        <i class="fas fa-file-code w-6"></i>
+                        <span>提示词模板管理</span>
+                    </a>
+                    
+                    <div class="px-4 my-2 text-blue-300 text-xs font-medium uppercase tracking-wider">
+                        创作工具
+                    </div>
+                    <a href="#" @click.prevent="changeView('writer')" :class="['flex items-center px-4 py-3 text-blue-100 hover:bg-blue-700 transition-colors duration-200', currentView === 'writer' ? 'bg-blue-700 border-l-4 border-white' : '']">
+                        <i class="fas fa-pencil-alt w-6"></i>
+                        <span>交底书撰写</span>
+                    </a>
+                    
+                    <div class="px-4 mt-6 mb-2 text-blue-300 text-xs font-medium uppercase tracking-wider">
+                        系统
+                    </div>
+                    <a href="#" @click.prevent="changeView('dashboard')" :class="['flex items-center px-4 py-3 text-blue-100 hover:bg-blue-700 transition-colors duration-200', currentView === 'dashboard' ? 'bg-blue-700 border-l-4 border-white' : '']">
+                        <i class="fas fa-home w-6"></i>
+                        <span>控制台首页</span>
+                    </a>
+                    <a href="#" @click.prevent="handleLogout" class="flex items-center px-4 py-3 text-blue-100 hover:bg-blue-700 transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt w-6"></i>
+                        <span>退出登录</span>
+                    </a>
+                </nav>
+                
+                <!-- 版本信息 -->
+                <div class="p-4 text-center text-blue-300 text-xs">
+                    <p>v1.0.0 Beta</p>
+                </div>
+            </div>
+            
+            <!-- 主内容区 -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <!-- 顶部导航栏 -->
+                <header class="bg-white shadow-sm z-10">
+                    <div class="flex items-center justify-between px-6 py-3">
+                        <div class="flex items-center">
+                            <h2 class="text-xl font-semibold text-gray-800">{{ pageTitle }}</h2>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="text-sm text-gray-600">
+                                上次登录: {{ formatDate(userInfo.lastLoginTime) }}
+                            </div>
+                            <a href="#" @click.prevent="refreshData" class="p-2 rounded-full hover:bg-gray-100">
+                                <i class="fas fa-sync-alt text-gray-600"></i>
+                            </a>
+                            <a href="#" @click.prevent="showHelp" class="p-2 rounded-full hover:bg-gray-100">
+                                <i class="fas fa-question-circle text-gray-600"></i>
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                
+                <!-- 内容区 -->
+                <main class="flex-1 overflow-hidden bg-gray-50">
+                    <!-- 使用条件渲染显示不同内容 -->
+                    <div v-if="currentView === 'dashboard'" class="h-full overflow-y-auto p-6">
+                        <!-- 原来的控制台内容 -->
+                        <!-- 欢迎卡片 -->
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                            <div class="p-6">
+                                <div class="flex items-center">
+                                    <div class="flex-1">
+                                        <h2 class="text-2xl font-bold text-gray-800">欢迎回来，{{ userInfo.userName }}</h2>
+                                        <p class="mt-2 text-gray-600">今天是美好的一天，准备开始创作了吗？</p>
+                                    </div>
+                                    <div class="hidden sm:block">
+                                        <i class="fas fa-lightbulb text-5xl text-yellow-400"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button @click="changeView('writer')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center">
+                                        <i class="fas fa-pencil-alt mr-2"></i>
+                                        <span>开始撰写交底书</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 数据统计卡片 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div class="p-6">
+                                    <div class="flex items-center">
+                                        <div class="p-3 rounded-full bg-blue-100 mr-4">
+                                            <i class="fas fa-sitemap text-blue-600 text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-600">技术领域数量</p>
+                                            <p class="text-2xl font-bold text-gray-800">{{ stats.domainCount }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div class="p-6">
+                                    <div class="flex items-center">
+                                        <div class="p-3 rounded-full bg-green-100 mr-4">
+                                            <i class="fas fa-file-code text-green-600 text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-600">提示词模板数量</p>
+                                            <p class="text-2xl font-bold text-gray-800">{{ stats.templateCount }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div class="p-6">
+                                    <div class="flex items-center">
+                                        <div class="p-3 rounded-full bg-purple-100 mr-4">
+                                            <i class="fas fa-file-alt text-purple-600 text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-600">已生成交底书</p>
+                                            <p class="text-2xl font-bold text-gray-800">{{ stats.documentCount }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 图表 -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div class="p-4 border-b border-gray-200">
+                                    <h3 class="text-lg font-medium text-gray-800">领域分布</h3>
+                                </div>
+                                <div class="p-6">
+                                    <div id="domainChart" class="w-full h-64"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                                <div class="p-4 border-b border-gray-200">
+                                    <h3 class="text-lg font-medium text-gray-800">最近活动</h3>
+                                </div>
+                                <div class="p-4">
+                                    <div v-if="activities.length === 0" class="text-center text-gray-500 py-4">
+                                        暂无活动记录
+                                    </div>
+                                    <ul v-else class="divide-y divide-gray-200">
+                                        <li v-for="(activity, index) in activities" :key="index" class="py-3">
+                                            <div class="flex items-center">
+                                                <div class="p-2 rounded-full" :class="getActivityIconBg(activity.type)">
+                                                    <i class="fas" :class="getActivityIcon(activity.type)" :class="getActivityIconColor(activity.type)"></i>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="text-sm text-gray-800">{{ activity.content }}</p>
+                                                    <p class="text-xs text-gray-500">{{ formatDate(activity.time) }}</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- iframe加载其他页面 -->
+                    <iframe v-else 
+                        :src="getPageUrl(currentView)" 
+                        class="w-full h-full border-none" 
+                        ref="contentFrame"
+                        @load="onContentFrameLoad">
+                    </iframe>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, onMounted, computed } = Vue;
+        
+        createApp({
+            setup() {
+                // 用户信息
+                const userInfo = reactive({
+                    userId: '',
+                    userName: '',
+                    userRole: '',
+                    userMail: '',
+                    lastLoginTime: ''
+                });
+                
+                // 统计数据
+                const stats = reactive({
+                    domainCount: 0,
+                    templateCount: 0,
+                    documentCount: 0
+                });
+                
+                // 当前视图
+                const currentView = ref('dashboard');
+                
+                // 获取页面标题
+                const pageTitle = computed(() => {
+                    switch(currentView.value) {
+                        case 'dashboard': return '控制台';
+                        case 'domain': return '技术领域管理';
+                        case 'template': return '提示词模板管理';
+                        case 'writer': return '交底书撰写';
+                        default: return '控制台';
+                    }
+                });
+                
+                // 内容iframe引用
+                const contentFrame = ref(null);
+                
+                // 活动列表
+                const activities = ref([
+                    {
+                        type: 'login',
+                        content: '登录系统',
+                        time: new Date().toISOString()
+                    },
+                    {
+                        type: 'domain',
+                        content: '更新技术领域：人工智能',
+                        time: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+                    },
+                    {
+                        type: 'template',
+                        content: '创建提示词模板：技术问题生成',
+                        time: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+                    },
+                    {
+                        type: 'document',
+                        content: '生成交底书：智能灌溉系统',
+                        time: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+                    }
+                ]);
+                
+                // 获取页面URL
+                const getPageUrl = (view) => {
+                    switch(view) {
+                        case 'domain': return 'domain-config.html';
+                        case 'template': return 'template-management.html';
+                        case 'writer': return 'writer.html';
+                        default: return '';
+                    }
+                };
+                
+                // 切换视图
+                const changeView = (view) => {
+                    currentView.value = view;
+                    
+                    // 如果切换到内部视图，初始化图表
+                    if (view === 'dashboard') {
+                        setTimeout(() => {
+                            initCharts();
+                        }, 100);
+                    }
+                };
+                
+                // 内容frame加载完成
+                const onContentFrameLoad = () => {
+                    try {
+                        console.log('内容iframe加载完成:', currentView.value);
+                        
+                        // 可以在这里向iframe传递数据
+                        if (contentFrame.value && contentFrame.value.contentWindow) {
+                            // 使用PostMessage传递数据
+                            contentFrame.value.contentWindow.postMessage({
+                                type: 'parent_data',
+                                token: localStorage.getItem('auth_token'),
+                                userId: localStorage.getItem('user_id')
+                            }, '*');
+                        }
+                    } catch (e) {
+                        console.error('内容iframe通信失败:', e);
+                    }
+                };
+                
+                // 检查登录状态
+                onMounted(() => {
+                    // 添加延时检查，确保代理服务已就绪
+                    setTimeout(() => {
+                        checkAuthentication();
+                    }, 1000);
+                });
+                
+                // 验证身份认证状态
+                const checkAuthentication = () => {
+                    try {
+                        console.log('检查登录状态...');
+                        console.log('Auth可用状态:', !!window.auth);
+                        console.log('Token状态:', localStorage.getItem('auth_token'));
+                        
+                        // 确保localStorage中有token，即使代理还未准备好
+                        if (localStorage.getItem('auth_token')) {
+                            console.log('本地存储中发现token，加载用户信息');
+                            // 加载用户信息
+                            loadUserInfo();
+                            
+                            // 加载技术领域
+                            loadTechDomains();
+                            
+                            // 模拟统计数据
+                            stats.domainCount = 12;
+                            stats.templateCount = 25;
+                            stats.documentCount = 8;
+                            
+                            // 初始化图表
+                            initCharts();
+                            return;
+                        }
+                        
+                        // 通过代理检查身份验证
+                        if (window.auth && window.auth.isAuthenticated()) {
+                            console.log('认证服务确认用户已登录');
+                            // 加载用户信息
+                            loadUserInfo();
+                            
+                            // 加载技术领域
+                            loadTechDomains();
+                            
+                            // 模拟统计数据
+                            stats.domainCount = 12;
+                            stats.templateCount = 25;
+                            stats.documentCount = 8;
+                            
+                            // 初始化图表
+                            initCharts();
+                        } else {
+                            console.warn('用户未登录或认证服务不可用，跳转到登录页');
+                            navigateToLogin();
+                        }
+                    } catch (error) {
+                        console.error('检查认证状态失败:', error);
+                        // 判断本地存储是否有token
+                        if (localStorage.getItem('auth_token')) {
+                            console.log('发现本地存储token，尝试继续加载');
+                            loadUserInfo();
+                            loadTechDomains();
+                            stats.domainCount = 12;
+                            stats.templateCount = 25;
+                            stats.documentCount = 8;
+                            initCharts();
+                        } else {
+                            window.toast?.error('初始化控制台失败，将返回登录页');
+                            setTimeout(() => {
+                                navigateToLogin();
+                            }, 2000);
+                        }
+                    }
+                };
+                
+                // 加载用户信息
+                const loadUserInfo = async () => {
+                    try {
+                        if (!window.api || !window.api.getUserInfo) {
+                            console.error('API服务不可用');
+                            // 应急用户信息
+                            Object.assign(userInfo, {
+                                userId: 'emergency_user',
+                                userName: '未知用户',
+                                userRole: 'user',
+                                userMail: 'unknown@example.com',
+                                lastLoginTime: new Date().toISOString()
+                            });
+                            return;
+                        }
+                        
+                        const response = await window.api.getUserInfo();
+                        console.log('获取用户信息响应:', response);
+                        
+                        if (response.code === 200 && response.data) {
+                            // 直接使用API返回的数据结构
+                            Object.assign(userInfo, {
+                                userId: response.data.userId,
+                                userName: response.data.userName,
+                                userRole: response.data.userRole || 'user',
+                                userMail: response.data.userMail,
+                                lastLoginTime: response.data.lastLoginTime || new Date().toISOString()
+                            });
+                        } else {
+                            console.error('获取用户信息失败:', response.message);
+                            window.toast?.error('获取用户信息失败: ' + response.message);
+                            
+                            // 使用应急数据
+                            Object.assign(userInfo, {
+                                userId: 'error_user',
+                                userName: '加载失败',
+                                userRole: 'user',
+                                userMail: 'error@example.com',
+                                lastLoginTime: new Date().toISOString()
+                            });
+                        }
+                    } catch (error) {
+                        console.error('加载用户信息错误:', error);
+                        window.toast?.error('加载用户信息失败');
+                        
+                        // 使用应急数据
+                        Object.assign(userInfo, {
+                            userId: 'error_user',
+                            userName: '加载失败',
+                            userRole: 'user',
+                            userMail: 'error@example.com',
+                            lastLoginTime: new Date().toISOString()
+                        });
+                    }
+                };
+                
+                // 加载技术领域
+                const loadTechDomains = async () => {
+                    try {
+                        if (!window.api || !window.api.getTechDomains) {
+                            console.error('API服务不可用');
+                            return;
+                        }
+                        
+                        const response = await window.api.getTechDomains();
+                        if (response.code === 200) {
+                            // 更新统计数据
+                            stats.domainCount = countTotalDomains(response.data);
+                        } else {
+                            console.error('获取技术领域失败:', response.message);
+                        }
+                    } catch (error) {
+                        console.error('加载技术领域错误:', error);
+                    }
+                };
+                
+                // 计算技术领域总数（包括子领域）
+                const countTotalDomains = (domains) => {
+                    let count = 0;
+                    
+                    const countDomain = (domain) => {
+                        count++;
+                        if (domain.children && domain.children.length > 0) {
+                            domain.children.forEach(countDomain);
+                        }
+                    };
+                    
+                    domains.forEach(countDomain);
+                    return count;
+                };
+                
+                // 初始化图表
+                const initCharts = () => {
+                    try {
+                        // 领域分布图表
+                        const chartDom = document.getElementById('domainChart');
+                        if (!chartDom) {
+                            console.error('找不到图表DOM元素');
+                            return;
+                        }
+                        
+                        const chart = echarts.init(chartDom);
+                        const option = {
+                            tooltip: {
+                                trigger: 'item',
+                                formatter: '{b}: {c} ({d}%)'
+                            },
+                            legend: {
+                                orient: 'vertical',
+                                right: 10,
+                                top: 'center',
+                                data: ['机械技术', '电子技术', '计算机技术', '化学技术', '其他']
+                            },
+                            series: [
+                                {
+                                    type: 'pie',
+                                    radius: ['40%', '70%'],
+                                    avoidLabelOverlap: false,
+                                    itemStyle: {
+                                        borderRadius: 10,
+                                        borderColor: '#fff',
+                                        borderWidth: 2
+                                    },
+                                    label: {
+                                        show: false,
+                                        position: 'center'
+                                    },
+                                    emphasis: {
+                                        label: {
+                                            show: true,
+                                            fontSize: '16',
+                                            fontWeight: 'bold'
+                                        }
+                                    },
+                                    labelLine: {
+                                        show: false
+                                    },
+                                    data: [
+                                        { value: 5, name: '机械技术' },
+                                        { value: 3, name: '电子技术' },
+                                        { value: 8, name: '计算机技术' },
+                                        { value: 2, name: '化学技术' },
+                                        { value: 1, name: '其他' }
+                                    ]
+                                }
+                            ]
+                        };
+                        
+                        chart.setOption(option);
+                        
+                        // 监听窗口大小变化
+                        window.addEventListener('resize', () => {
+                            chart.resize();
+                        });
+                    } catch (error) {
+                        console.error('初始化图表失败:', error);
+                    }
+                };
+                
+                // 导航到指定页面
+                const navigateTo = (page) => {
+                    try {
+                        window.parent.postMessage({ type: 'navigation', page }, '*');
+                    } catch (e) {
+                        console.error('导航失败:', e);
+                        alert('导航失败，请刷新页面重试');
+                    }
+                };
+                
+                // 导航到登录页
+                const navigateToLogin = () => {
+                    try {
+                        window.parent.postMessage({ type: 'navigation', page: 'login' }, '*');
+                    } catch (e) {
+                        console.error('导航到登录页失败:', e);
+                        try {
+                            window.parent.location.href = 'login.html';
+                        } catch (e2) {
+                            console.error('备用导航方式也失败:', e2);
+                            alert('无法跳转到登录页，请手动刷新页面');
+                        }
+                    }
+                };
+                
+                // 退出登录
+                const handleLogout = () => {
+                    try {
+                        // 调用auth服务清除登录信息
+                        if (window.auth && typeof window.auth.clearAuth === 'function') {
+                            window.auth.clearAuth();
+                        } else {
+                            console.warn('Auth服务不可用，直接清除localStorage');
+                            localStorage.removeItem('auth_token');
+                            localStorage.removeItem('user_id');
+                        }
+                        
+                        // 显示提示
+                        try {
+                            if (window.toast && typeof window.toast.success === 'function') {
+                                window.toast.success('退出登录成功');
+                            } else {
+                                alert('退出登录成功');
+                            }
+                        } catch (e) {
+                            console.error('显示提示失败:', e);
+                            alert('退出登录成功');
+                        }
+                        
+                        // 跳转到登录页
+                        setTimeout(() => {
+                            navigateToLogin();
+                        }, 1000);
+                    } catch (error) {
+                        console.error('退出登录失败:', error);
+                        alert('退出登录失败，请刷新页面重试');
+                    }
+                };
+                
+                // 刷新数据
+                const refreshData = () => {
+                    try {
+                        loadUserInfo();
+                        loadTechDomains();
+                        if (window.toast) {
+                            window.toast.success('数据已刷新');
+                        }
+                    } catch (error) {
+                        console.error('刷新数据失败:', error);
+                        if (window.toast) {
+                            window.toast.error('刷新数据失败');
+                        } else {
+                            alert('刷新数据失败');
+                        }
+                    }
+                };
+                
+                // 显示帮助
+                const showHelp = () => {
+                    try {
+                        if (window.toast) {
+                            window.toast.info('技术交底书智能撰写系统 v1.0.0 Beta');
+                        } else {
+                            alert('技术交底书智能撰写系统 v1.0.0 Beta');
+                        }
+                    } catch (error) {
+                        console.error('显示帮助失败:', error);
+                        alert('技术交底书智能撰写系统 v1.0.0 Beta');
+                    }
+                };
+                
+                // 格式化日期
+                const formatDate = (dateString) => {
+                    if (!dateString) return '未知时间';
+                    
+                    try {
+                        const date = new Date(dateString);
+                        return date.toLocaleString('zh-CN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (error) {
+                        console.error('日期格式化失败:', error);
+                        return dateString;
+                    }
+                };
+                
+                // 获取活动图标
+                const getActivityIcon = (type) => {
+                    switch (type) {
+                        case 'login': return 'fa-sign-in-alt';
+                        case 'domain': return 'fa-sitemap';
+                        case 'template': return 'fa-file-code';
+                        case 'document': return 'fa-file-alt';
+                        default: return 'fa-info-circle';
+                    }
+                };
+                
+                // 获取活动图标背景颜色
+                const getActivityIconBg = (type) => {
+                    switch (type) {
+                        case 'login': return 'bg-blue-100';
+                        case 'domain': return 'bg-green-100';
+                        case 'template': return 'bg-yellow-100';
+                        case 'document': return 'bg-purple-100';
+                        default: return 'bg-gray-100';
+                    }
+                };
+                
+                // 获取活动图标颜色
+                const getActivityIconColor = (type) => {
+                    switch (type) {
+                        case 'login': return 'text-blue-600';
+                        case 'domain': return 'text-green-600';
+                        case 'template': return 'text-yellow-600';
+                        case 'document': return 'text-purple-600';
+                        default: return 'text-gray-600';
+                    }
+                };
+                
+                return {
+                    userInfo,
+                    stats,
+                    activities,
+                    currentView,
+                    pageTitle,
+                    contentFrame,
+                    navigateTo,
+                    navigateToLogin,
+                    handleLogout,
+                    refreshData,
+                    showHelp,
+                    formatDate,
+                    getActivityIcon,
+                    getActivityIconBg,
+                    getActivityIconColor,
+                    changeView,
+                    getPageUrl,
+                    onContentFrameLoad
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html> 

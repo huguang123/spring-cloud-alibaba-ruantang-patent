@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>技术交底书智能撰写系统</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/custom.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.2.31/dist/vue.global.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100vh;
+      --header-height: 60px;
+      background-color: #f9fafb;
+    }
+    .main-header {
+      background: linear-gradient(135deg, #2F54EB 0%, #13C2C2 100%);
+    }
+    .nav-item {
+      transition: all 0.3s;
+    }
+    .nav-item:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    .nav-item.active {
+      background-color: rgba(255, 255, 255, 0.2);
+      border-left: 3px solid white;
+    }
+    .main-content {
+      height: calc(100vh - 64px);
+    }
+    
+    /* 加载动画效果 */
+    .page-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background-color: white;
+      transition: opacity 0.3s ease;
+      opacity: 1; /* 直接显示iframe内容 */
+    }
+    .iframe-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      flex: 1;
+    }
+    
+    /* 加载动画 */
+    .loading-spinner {
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(47, 84, 235, 0.3);
+      border-radius: 50%;
+      border-top-color: #2F54EB;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .flip-animation {
+      perspective: 1000px;
+    }
+    .flip-card {
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+    .flip-card.flipped {
+      transform: rotateY(180deg);
+    }
+    .debug-panel {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 8px 12px;
+      border-top-left-radius: 8px;
+      font-size: 12px;
+      z-index: 1000;
+      display: none;
+    }
+    /* 仅在开发环境显示 */
+    .env-development .debug-panel {
+      display: block;
+    }
+  </style>
+  <script>
+    console.log('初始化全局模块...');
+    
+    // 创建全局认证对象 - 移到最前面，确保最早初始化
+    window.auth = {
+      // 保存认证信息
+      saveAuth: (token, userId) => {
+        console.log('保存认证信息:', { token, userId });
+        localStorage.setItem('auth_token', token);
+        localStorage.setItem('user_id', userId);
+        return true;
+      },
+      
+      // 清除认证信息
+      clearAuth: () => {
+        console.log('清除认证信息');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_id');
+        return true;
+      },
+      
+      // 检查是否已认证
+      isAuthenticated: () => {
+        const token = localStorage.getItem('auth_token');
+        return !!token;
+      },
+      
+      // 获取用户ID
+      getUserId: () => {
+        return localStorage.getItem('user_id');
+      },
+      
+      // 获取认证令牌
+      getToken: () => {
+        return localStorage.getItem('auth_token');
+      }
+    };
+    
+    // 创建全局API对象
+    window.api = {
+      // 登录接口
+      login: async (loginName, password, userMail = '') => {
+        console.log('调用登录API:', loginName);
+        
+        try {
+          // 构建请求选项
+          const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              loginName, 
+              password,
+              userMail
+            })
+          };
+          
+          // 调用实际的登录API
+          const response = await fetch('http://localhost:9000/ums/auth/login', requestOptions);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          console.log('实际登录API响应:', data);
+          
+          // 登录成功立即保存token到本地存储，确保dashboard可以读到
+          if (data && data.code === 200 && data.data && data.data.token) {
+            console.log('登录成功，立即保存token到localStorage');
+            localStorage.setItem('auth_token', data.data.token);
+            localStorage.setItem('user_id', data.data.userId || '');
+            return data;
+          }
+
+          // 如果实际API调用失败，使用模拟登录
+          console.log('使用模拟登录');
+          if (loginName && password) {
+            const mockData = {
+              code: 200,
+              message: '登录成功(模拟模式)',
+              data: {
+                token: 'mock_token_bb9ecoc40u7', // 使用固定的模拟token
+                userId: '10001',
+                userName: loginName
+              }
+            };
+            
+            // 保存模拟token
+            localStorage.setItem('auth_token', mockData.data.token);
+            localStorage.setItem('user_id', mockData.data.userId);
+            
+            return mockData;
+          }
+          
+          return {
+            code: 401,
+            message: '用户名或密码错误',
+            data: null
+          };
+        } catch (error) {
+          console.error('登录API调用失败:', error);
+          
+          // 使用模拟登录作为备选方案
+          if (loginName && password) {
+            const mockData = {
+              code: 200,
+              message: '登录成功(模拟模式)',
+              data: {
+                token: 'mock_token_bb9ecoc40u7', // 使用固定的模拟token
+                userId: '10001',
+                userName: loginName
+              }
+            };
+            
+            // 保存模拟token
+            localStorage.setItem('auth_token', mockData.data.token);
+            localStorage.setItem('user_id', mockData.data.userId);
+            
+            return mockData;
+          }
+          
+          return {
+            code: 500,
+            message: `登录失败: ${error.message}`,
+            data: null
+          };
+        }
+      },
+      
+      // 注册接口
+      register: async (formData) => {
+        console.log('调用注册API:', formData);
+        
+        // 模拟API调用延迟
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // 模拟注册成功
+        if (formData.loginName && formData.password) {
+          return {
+            code: 200,
+            message: '注册成功',
+            data: {
+              userId: Date.now().toString(),
+              userName: formData.userName || formData.loginName
+            }
+          };
+        } else {
+          return {
+            code: 400,
+            message: '注册信息不完整',
+            data: null
+          };
+        }
+      },
+      
+      // 获取用户信息
+      getUserInfo: async () => {
+        console.log('调用获取用户信息API');
+        
+        try {
+          const token = localStorage.getItem('auth_token');
+          if (!token) {
+            return {
+              code: 401,
+              message: '未找到认证token',
+              data: null
+            };
+          }
+
+          const response = await fetch('http://localhost:9000/ums/api/users/info', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          console.log('用户信息API响应:', result);
+
+          // 根据实际返回的字段名修改映射
+          if (result.code === 200 && result.data) {
+            return {
+              code: 200,
+              message: '获取成功',
+              data: {
+                userId: result.data.id || result.data.userId,
+                userName: result.data.userName, // 直接使用userName字段
+                userRole: result.data.roles?.[0]?.name || 'user',
+                userMail: result.data.userMail || result.data.email,
+                lastLoginTime: result.data.updateTime || new Date().toISOString()
+              }
+            };
+          }
+
+          return result;
+        } catch (error) {
+          console.error('获取用户信息失败:', error);
+          
+          return {
+            code: 500,
+            message: `获取用户信息失败: ${error.message}`,
+            data: null
+          };
+        }
+      },
+      
+      // 获取技术领域列表
+      getTechDomains: async () => {
+        console.log('调用获取技术领域API');
+        
+        // 模拟API调用延迟
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
+        // 模拟技术领域数据
+        return {
+          code: 200,
+          message: '获取成功',
+          data: [
+            {
+              id: '1',
+              domainName: '机械技术领域',
+              parentId: null,
+              level: 1,
+              description: '机械工程及相关技术',
+              children: [
+                {
+                  id: '101',
+                  domainName: '机械设计',
+                  parentId: '1',
+                  level: 2,
+                  description: '机械设计相关技术'
+                },
+                {
+                  id: '102',
+                  domainName: '机械制造',
+                  parentId: '1',
+                  level: 2,
+                  description: '机械制造相关技术'
+                }
+              ]
+            },
+            {
+              id: '2',
+              domainName: '电子技术领域',
+              parentId: null,
+              level: 1,
+              description: '电子工程及相关技术',
+              children: [
+                {
+                  id: '201',
+                  domainName: '集成电路',
+                  parentId: '2',
+                  level: 2,
+                  description: '集成电路相关技术'
+                }
+              ]
+            },
+            {
+              id: '3',
+              domainName: '计算机技术领域',
+              parentId: null,
+              level: 1,
+              description: '计算机科学与技术',
+              children: [
+                {
+                  id: '301',
+                  domainName: '人工智能',
+                  parentId: '3',
+                  level: 2,
+                  description: '人工智能相关技术',
+                  children: [
+                    {
+                      id: '30101',
+                      domainName: '机器学习',
+                      parentId: '301',
+                      level: 3,
+                      description: '机器学习相关技术'
+                    },
+                    {
+                      id: '30102',
+                      domainName: '深度学习',
+                      parentId: '301',
+                      level: 3,
+                      description: '深度学习相关技术'
+                    }
+                  ]
+                },
+                {
+                  id: '302',
+                  domainName: '网络安全',
+                  parentId: '3',
+                  level: 2,
+                  description: '网络安全相关技术'
+                }
+              ]
+            }
+          ]
+        };
+      },
+      
+      // 获取提示词模板
+      getPromptTemplates: async (sectionType) => {
+        console.log('调用获取提示词模板API:', sectionType);
+        
+        // 模拟API调用延迟
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // 模拟提示词模板数据
+        const templates = {
+          'tech_problem': [
+            {
+              id: '1001',
+              sectionType: 'tech_problem',
+              content: '【请基于以下输入：${user_input}\n使用头脑风暴方法，生成技术问题。\n示例参考：${example}，遵守【规范】${output_rules}',
+              weight: 5,
+              version: '1.0'
+            },
+            {
+              id: '1002',
+              sectionType: 'tech_problem',
+              content: '【请分析技术领域：${domain}】\n针对【${user_input}】提出3-5个关键技术问题。遵循TRIZ创新原理，确保问题具有创新性和可解决性。',
+              weight: 3,
+              version: '1.1'
+            }
+          ],
+          'tech_solution': [
+            {
+              id: '2001',
+              sectionType: 'tech_solution',
+              content: '【基于以下技术问题：${tech_problem}】\n设计一个完整的技术方案，解决上述问题。方案应包含：核心原理、关键组件、实现步骤。',
+              weight: 4,
+              version: '1.0'
+            }
+          ],
+          'tech_effect': [
+            {
+              id: '3001',
+              sectionType: 'tech_effect',
+              content: '【基于以下技术方案：${tech_solution}】\n分析该方案可能带来的技术效果。从效率提升、成本降低、性能优化等方面进行量化分析。',
+              weight: 4,
+              version: '1.0'
+            }
+          ]
+        };
+        
+        return {
+          code: 200,
+          message: '获取成功',
+          data: templates[sectionType] || []
+        };
+      }
+    };
+    
+    // 创建全局Toast对象
+    window.toast = {
+      // 显示成功消息
+      success: (message, duration = 3000) => {
+        console.log('成功消息:', message);
+        
+        // 创建toast元素
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-md z-50 animate-fadeIn';
+        toast.innerHTML = `
+          <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span>${message}</span>
+          </div>
+        `;
+        
+        // 添加到页面
+        document.body.appendChild(toast);
+        
+        // 定时移除
+        setTimeout(() => {
+          toast.classList.replace('animate-fadeIn', 'animate-fadeOut');
+          setTimeout(() => {
+            document.body.removeChild(toast);
+          }, 300);
+        }, duration);
+      },
+      
+      // 显示错误消息
+      error: (message, duration = 3000) => {
+        console.error('错误消息:', message);
+        
+        // 创建toast元素
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-md z-50 animate-fadeIn';
+        toast.innerHTML = `
+          <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span>${message}</span>
+          </div>
+        `;
+        
+        // 添加到页面
+        document.body.appendChild(toast);
+        
+        // 定时移除
+        setTimeout(() => {
+          toast.classList.replace('animate-fadeIn', 'animate-fadeOut');
+          setTimeout(() => {
+            document.body.removeChild(toast);
+          }, 300);
+        }, duration);
+      },
+      
+      // 显示警告消息
+      warning: (message, duration = 3000) => {
+        console.warn('警告消息:', message);
+        
+        // 创建toast元素
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-md z-50 animate-fadeIn';
+        toast.innerHTML = `
+          <div class="flex items-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span>${message}</span>
+          </div>
+        `;
+        
+        // 添加到页面
+        document.body.appendChild(toast);
+        
+        // 定时移除
+        setTimeout(() => {
+          toast.classList.replace('animate-fadeIn', 'animate-fadeOut');
+          setTimeout(() => {
+            document.body.removeChild(toast);
+          }, 300);
+        }, duration);
+      },
+      
+      // 显示信息消息
+      info: (message, duration = 3000) => {
+        console.info('信息消息:', message);
+        
+        // 创建toast元素
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-md z-50 animate-fadeIn';
+        toast.innerHTML = `
+          <div class="flex items-center">
+            <i class="fas fa-info-circle mr-2"></i>
+            <span>${message}</span>
+          </div>
+        `;
+        
+        // 添加到页面
+        document.body.appendChild(toast);
+        
+        // 定时移除
+        setTimeout(() => {
+          toast.classList.replace('animate-fadeIn', 'animate-fadeOut');
+          setTimeout(() => {
+            document.body.removeChild(toast);
+          }, 300);
+        }, duration);
+      }
+    };
+    
+    // 初始检测
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('全局服务初始化完成');
+      console.log('Auth 可用:', !!window.auth);
+      console.log('API 可用:', !!window.api);
+      console.log('Toast 可用:', !!window.toast);
+    });
+  </script>
+</head>
+<body class="bg-gray-50">
+  <div id="app">
+    <iframe 
+      id="content-frame" 
+      :src="currentPage" 
+      class="w-full h-screen border-none"
+      @load="onFrameLoad">
+    </iframe>
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+    
+    createApp({
+      setup() {
+        const currentPage = ref('pages/login.html');
+        
+        // 检查登录状态
+        onMounted(() => {
+          try {
+            if (window.auth.isAuthenticated()) {
+              currentPage.value = 'pages/dashboard.html';
+            }
+          } catch (e) {
+            console.error('检查认证状态失败:', e);
+          }
+          
+          // 监听子页面导航消息
+          window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'navigation') {
+              console.log('收到导航请求:', event.data.page);
+              navigateTo(event.data.page);
+            }
+          });
+        });
+        
+        // 导航到指定页面
+        const navigateTo = (page) => {
+          if (page === 'login') {
+            currentPage.value = 'pages/login.html';
+          } else if (page === 'register') {
+            currentPage.value = 'pages/register.html';
+          } else if (page === 'dashboard') {
+            currentPage.value = 'pages/dashboard.html';
+          } else if (page === 'domain') {
+            currentPage.value = 'pages/domain-config.html';
+          } else if (page === 'template') {
+            currentPage.value = 'pages/template-management.html';
+          } else if (page === 'writer') {
+            currentPage.value = 'pages/writer.html';
+          }
+        };
+        
+        // iframe加载完成
+        const onFrameLoad = () => {
+          try {
+            console.log('子页面加载完成:', currentPage.value);
+            const iframe = document.getElementById('content-frame');
+            if (iframe && iframe.contentWindow) {
+              // 不直接注入，而是通过postMessage发送全局服务
+              iframe.contentWindow.postMessage({
+                type: 'services',
+                data: {
+                  api: JSON.stringify({
+                    available: true,
+                    methods: Object.keys(window.api)
+                  }),
+                  auth: JSON.stringify({
+                    available: true,
+                    methods: Object.keys(window.auth)
+                  }),
+                  toast: JSON.stringify({
+                    available: true,
+                    methods: Object.keys(window.toast)
+                  })
+                }
+              }, '*');
+              
+              console.log('服务信息已通过postMessage发送到子页面');
+              
+              // 设置消息监听器，处理子页面的API请求
+              if (!window._messageListenerAdded) {
+                window.addEventListener('message', handleChildMessage);
+                window._messageListenerAdded = true;
+                console.log('已添加子页面消息监听器');
+              }
+            }
+          } catch (e) {
+            console.error('向子页面发送服务消息失败:', e);
+          }
+        };
+        
+        // 处理子页面发来的消息
+        const handleChildMessage = async (event) => {
+          try {
+            const message = event.data;
+            
+            // 处理服务请求
+            if (message && message.type === 'request_services') {
+              console.log('收到服务请求，发送服务信息');
+              
+              // 发送服务信息给请求的子页面
+              event.source.postMessage({
+                type: 'services',
+                data: {
+                  api: JSON.stringify({
+                    available: true,
+                    methods: Object.keys(window.api)
+                  }),
+                  auth: JSON.stringify({
+                    available: true,
+                    methods: Object.keys(window.auth)
+                  }),
+                  toast: JSON.stringify({
+                    available: true,
+                    methods: Object.keys(window.toast)
+                  })
+                }
+              }, '*');
+            }
+            
+            // 处理API调用请求
+            else if (message && message.type === 'api_call') {
+              console.log('收到API调用请求:', message);
+              const { method, params = [], callId } = message;
+              
+              let result;
+              try {
+                if (window.api && typeof window.api[method] === 'function') {
+                  result = await window.api[method](...params);
+                  
+                  // 发送结果回子页面
+                  event.source.postMessage({
+                    type: 'api_response',
+                    callId,
+                    result
+                  }, '*');
+                } else {
+                  throw new Error(`API方法 ${method} 不存在`);
+                }
+              } catch (error) {
+                console.error(`API调用错误:`, error);
+                // 发送错误响应回子页面
+                event.source.postMessage({
+                  type: 'api_response',
+                  callId,
+                  result: {
+                    code: 500,
+                    message: error.message,
+                    data: null
+                  }
+                }, '*');
+              }
+            }
+            
+            // 处理Auth调用请求
+            else if (message && message.type === 'auth_call') {
+              console.log('收到Auth调用请求:', message);
+              const { method, params = [], callId } = message;
+              
+              let result;
+              if (window.auth && typeof window.auth[method] === 'function') {
+                result = window.auth[method](...params);
+              } else {
+                result = { success: false, message: `Auth方法 ${method} 不存在` };
+              }
+              
+              // 返回结果给子页面
+              event.source.postMessage({
+                type: 'auth_response',
+                callId,
+                result
+              }, '*');
+            }
+            
+            // 处理Toast调用请求
+            else if (message && message.type === 'toast_call') {
+              console.log('收到Toast调用请求:', message);
+              const { method, params = [] } = message;
+              
+              if (window.toast && typeof window.toast[method] === 'function') {
+                window.toast[method](...params);
+              }
+            }
+          } catch (error) {
+            console.error('处理子页面消息时出错:', error);
+            event.source.postMessage({
+              type: 'error',
+              error: error.message
+            }, '*');
+          }
+        };
+        
+        // 调用实际的登录API
+        const callRealLoginApi = async (loginName, password, userMail = '') => {
+          console.log('调用实际登录API:', loginName);
+          
+          try {
+            // 构建请求选项
+            const requestOptions = {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                loginName, 
+                password,
+                userMail
+              })
+            };
+            
+            // 调用实际的登录API
+            const response = await fetch('http://localhost:9000/ums/auth/login', requestOptions);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('实际登录API响应:', data);
+            
+            // 登录成功立即保存token到本地存储，确保dashboard可以读到
+            if (data && data.code === 200 && data.data && data.data.token) {
+              console.log('登录成功，立即保存token到localStorage');
+              localStorage.setItem('auth_token', data.data.token);
+              localStorage.setItem('user_id', data.data.userId || '');
+            }
+            
+            return data; // 返回后端API的实际响应
+          } catch (error) {
+            console.error('调用实际登录API失败:', error);
+            
+            // 如果实际API调用失败，尝试使用模拟登录
+            console.log('尝试使用模拟登录');
+            if (loginName && password) {
+              const mockData = {
+                code: 200,
+                message: '登录成功(模拟模式)',
+                data: {
+                  token: 'mock_token_' + Math.random().toString(36).substring(2),
+                  userId: '10001',
+                  userName: loginName
+                }
+              };
+              
+              // 保存模拟token
+              localStorage.setItem('auth_token', mockData.data.token);
+              localStorage.setItem('user_id', mockData.data.userId);
+              
+              return mockData;
+            }
+            
+            // 返回错误响应
+            return {
+              code: 500,
+              message: `登录接口调用失败: ${error.message}`,
+              data: null
+            };
+          }
+        };
+        
+        return {
+          currentPage,
+          onFrameLoad
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

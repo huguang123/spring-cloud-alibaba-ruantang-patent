@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 技术交底书智能撰写系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/custom.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.31/dist/vue.global.js"></script>
+    
+    <!-- 安全检查脚本 -->
+    <script>
+        console.log('正在设置客户端代理服务...');
+        
+        // 创建客户端代理服务
+        window.proxyServices = {
+            ready: false,
+            callId: 0,
+            pendingCalls: new Map(),
+            
+            // 初始化代理服务
+            init: function() {
+                // 设置消息监听器
+                window.addEventListener('message', this.handleMessage.bind(this));
+                
+                // 向父页面请求服务信息
+                window.parent.postMessage({ type: 'request_services' }, '*');
+                
+                console.log('客户端代理服务初始化完成');
+            },
+            
+            // 处理来自父页面的消息
+            handleMessage: function(event) {
+                const message = event.data;
+                
+                // 接收服务信息
+                if (message && message.type === 'services') {
+                    console.log('收到服务信息:', message.data);
+                    this.ready = true;
+                    
+                    // 创建API代理
+                    if (!window.api) {
+                        window.api = this.createApiProxy();
+                    }
+                    
+                    // 创建Auth代理
+                    if (!window.auth) {
+                        window.auth = this.createAuthProxy();
+                    }
+                    
+                    // 创建Toast代理
+                    if (!window.toast) {
+                        window.toast = this.createToastProxy();
+                    }
+                }
+                
+                // 处理API响应
+                else if (message && message.type === 'api_response') {
+                    const { callId, result } = message;
+                    const resolver = this.pendingCalls.get(callId);
+                    
+                    if (resolver) {
+                        resolver(result);
+                        this.pendingCalls.delete(callId);
+                    }
+                }
+                
+                // 处理Auth响应
+                else if (message && message.type === 'auth_response') {
+                    const { callId, result } = message;
+                    const resolver = this.pendingCalls.get(callId);
+                    
+                    if (resolver) {
+                        resolver(result);
+                        this.pendingCalls.delete(callId);
+                    }
+                }
+                
+                // 处理错误信息
+                else if (message && message.type === 'error') {
+                    console.error('父页面返回错误:', message.error);
+                }
+            },
+            
+            // 创建API代理对象
+            createApiProxy: function() {
+                return new Proxy({}, {
+                    get: (target, prop) => {
+                        return (...args) => {
+                            return this.callParentApi(prop, args);
+                        };
+                    }
+                });
+            },
+            
+            // 创建Auth代理对象
+            createAuthProxy: function() {
+                return new Proxy({}, {
+                    get: (target, prop) => {
+                        return (...args) => {
+                            return this.callParentAuth(prop, args);
+                        };
+                    }
+                });
+            },
+            
+            // 创建Toast代理对象
+            createToastProxy: function() {
+                return new Proxy({}, {
+                    get: (target, prop) => {
+                        return (...args) => {
+                            return this.callParentToast(prop, args);
+                        };
+                    }
+                });
+            },
+            
+            // 调用父页面的API方法
+            callParentApi: function(method, params) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const callId = ++this.callId;
+                        
+                        // 存储Promise解析器
+                        this.pendingCalls.set(callId, resolve);
+                        
+                        // 向父页面发送API调用请求
+                        window.parent.postMessage({
+                            type: 'api_call',
+                            method,
+                            params,
+                            callId
+                        }, '*');
+                    } catch (error) {
+                        console.error(`调用父页面API方法 ${method} 失败:`, error);
+                        reject(error);
+                    }
+                });
+            },
+            
+            // 调用父页面的Auth方法
+            callParentAuth: function(method, params) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        const callId = ++this.callId;
+                        
+                        // 存储Promise解析器
+                        this.pendingCalls.set(callId, resolve);
+                        
+                        // 向父页面发送Auth调用请求
+                        window.parent.postMessage({
+                            type: 'auth_call',
+                            method,
+                            params,
+                            callId
+                        }, '*');
+                    } catch (error) {
+                        console.error(`调用父页面Auth方法 ${method} 失败:`, error);
+                        reject(error);
+                    }
+                });
+            },
+            
+            // 调用父页面的Toast方法
+            callParentToast: function(method, params) {
+                try {
+                    // 向父页面发送Toast调用请求
+                    window.parent.postMessage({
+                        type: 'toast_call',
+                        method,
+                        params
+                    }, '*');
+                } catch (error) {
+                    console.error(`调用父页面Toast方法 ${method} 失败:`, error);
+                }
+            }
+        };
+        
+        // 初始化代理服务
+        window.proxyServices.init();
+        
+        // 应急备份服务（仅在通信失败时使用）
+        function setupEmergencyServices() {
+            console.warn('设置应急服务作为备份');
+            
+            // 应急API
+            if (!window.api) {
+                window.api = {
+                    register: async (formData) => {
+                        console.log('使用应急API注册:', formData);
+                        if (formData.userName && formData.loginName && formData.password) {
+                            return {
+                                code: 200,
+                                message: '注册成功(应急模式)',
+                                data: {
+                                    userId: Date.now(),
+                                    userName: formData.userName
+                                }
+                            };
+                        } else {
+                            return {
+                                code: 400,
+                                message: '注册信息不完整',
+                                data: null
+                            };
+                        }
+                    }
+                };
+            }
+            
+            // 应急Toast
+            if (!window.toast) {
+                window.toast = {
+                    success: (message) => alert(message),
+                    error: (message) => alert('错误: ' + message)
+                };
+            }
+        }
+        
+        // 设置超时，如果5秒内未收到父页面响应，则启用应急服务
+        setTimeout(() => {
+            if (!window.proxyServices.ready) {
+                console.warn('父页面未响应服务请求，启用应急服务');
+                setupEmergencyServices();
+            }
+        }, 5000);
+    </script>
+</head>
+<body>
+    <div id="app" class="auth-container flex items-center justify-center w-full h-screen">
+        <div class="relative z-10 w-full max-w-md px-8 py-10 auth-card rounded-xl shadow-2xl animate-fadeIn">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                    <i class="fas fa-file-alt text-blue-600 mr-2"></i>技术交底书智能撰写系统
+                </h1>
+                <p class="text-gray-600">创建您的个人账户</p>
+            </div>
+            
+            <!-- 注册表单 -->
+            <form @submit.prevent="handleRegister" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-1 font-medium">用户名</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input 
+                            type="text" 
+                            v-model="registerForm.loginName"
+                            class="w-full py-2.5 pl-10 pr-3 border rounded-lg focus:outline-none form-control"
+                            :class="{'input-error': errors.loginName}"
+                            placeholder="请输入用户名"
+                        >
+                    </div>
+                    <p v-if="errors.loginName" class="error-message">{{ errors.loginName }}</p>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 mb-1 font-medium">邮箱</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input 
+                            type="email" 
+                            v-model="registerForm.userMail"
+                            class="w-full py-2.5 pl-10 pr-3 border rounded-lg focus:outline-none form-control"
+                            :class="{'input-error': errors.userMail}"
+                            placeholder="请输入邮箱"
+                        >
+                    </div>
+                    <p v-if="errors.userMail" class="error-message">{{ errors.userMail }}</p>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 mb-1 font-medium">密码</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input 
+                            :type="showPassword ? 'text' : 'password'" 
+                            v-model="registerForm.password"
+                            class="w-full py-2.5 pl-10 pr-10 border rounded-lg focus:outline-none form-control"
+                            :class="{'input-error': errors.password}"
+                            placeholder="请设置密码"
+                        >
+                        <button 
+                            type="button"
+                            @click="showPassword = !showPassword"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                        >
+                            <i :class="[showPassword ? 'fa-eye-slash' : 'fa-eye', 'fas']"></i>
+                        </button>
+                    </div>
+                    <p v-if="errors.password" class="error-message">{{ errors.password }}</p>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 mb-1 font-medium">确认密码</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input 
+                            :type="showConfirmPassword ? 'text' : 'password'" 
+                            v-model="confirmPassword"
+                            class="w-full py-2.5 pl-10 pr-10 border rounded-lg focus:outline-none form-control"
+                            :class="{'input-error': errors.confirmPassword}"
+                            placeholder="请再次输入密码"
+                        >
+                        <button 
+                            type="button"
+                            @click="showConfirmPassword = !showConfirmPassword"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500"
+                        >
+                            <i :class="[showConfirmPassword ? 'fa-eye-slash' : 'fa-eye', 'fas']"></i>
+                        </button>
+                    </div>
+                    <p v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</p>
+                </div>
+                
+                <div class="flex items-center mt-2">
+                    <input type="checkbox" id="agreement" v-model="agreement" class="h-4 w-4 text-blue-600">
+                    <label for="agreement" class="ml-2 text-gray-600 text-sm">我已阅读并同意<a href="#" class="text-blue-600 hover:underline">服务条款</a>和<a href="#" class="text-blue-600 hover:underline">隐私政策</a></label>
+                </div>
+                <p v-if="errors.agreement" class="error-message">{{ errors.agreement }}</p>
+                
+                <button 
+                    type="submit" 
+                    :disabled="loading"
+                    class="w-full py-2.5 px-4 bg-gradient-primary text-white rounded-lg btn-hover-effect flex items-center justify-center mt-4"
+                >
+                    <i v-if="loading" class="fas fa-spinner fa-spin mr-2"></i>
+                    <span>{{ loading ? '注册中...' : '注册' }}</span>
+                </button>
+            </form>
+            
+            <!-- 密码强度指示器 -->
+            <div v-if="registerForm.password" class="mt-3">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-500">密码强度</span>
+                    <span class="text-xs" :class="passwordStrengthColor">{{ passwordStrengthText }}</span>
+                </div>
+                <div class="bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                        class="h-full transition-all duration-300 rounded-full" 
+                        :class="passwordStrengthBarColor"
+                        :style="{ width: passwordStrength + '%' }"
+                    ></div>
+                </div>
+            </div>
+            
+            <!-- 返回登录 -->
+            <div class="text-center mt-4">
+                <p class="text-gray-600">
+                    已有账号？
+                    <a href="#" @click.prevent="goToLogin" class="text-blue-600 hover:text-blue-800 font-medium">
+                        立即登录
+                    </a>
+                </p>
+            </div>
+            
+            <!-- 技术动效背景 -->
+            <div class="absolute bottom-4 right-4 opacity-50">
+                <i class="fas fa-cog fa-spin text-blue-400 text-xl"></i>
+                <i class="fas fa-cog fa-spin-pulse text-teal-400 text-sm ml-2"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                // 注册表单数据
+                const registerForm = reactive({
+                    loginName: '',
+                    password: '',
+                    userMail: ''
+                });
+                
+                // 状态
+                const loading = ref(false);
+                const showPassword = ref(false);
+                const showConfirmPassword = ref(false);
+                const confirmPassword = ref('');
+                const agreement = ref(false);
+                const errors = reactive({
+                    loginName: '',
+                    password: '',
+                    confirmPassword: '',
+                    userMail: '',
+                    agreement: ''
+                });
+                
+                // 处理背景图片加载失败
+                const handleBackgroundImageError = () => {
+                    // 如果背景图加载失败，使用纯CSS渐变
+                    document.querySelector('.auth-container').style.backgroundImage = 'none';
+                };
+                
+                // 计算密码强度
+                const passwordStrength = computed(() => {
+                    const password = registerForm.password;
+                    if (!password) return 0;
+                    
+                    let strength = 0;
+                    // 长度评分
+                    if (password.length >= 6) strength += 20;
+                    if (password.length >= 8) strength += 10;
+                    if (password.length >= 10) strength += 10;
+                    
+                    // 包含数字
+                    if (/\d/.test(password)) strength += 15;
+                    
+                    // 包含小写字母
+                    if (/[a-z]/.test(password)) strength += 15;
+                    
+                    // 包含大写字母
+                    if (/[A-Z]/.test(password)) strength += 15;
+                    
+                    // 包含特殊字符
+                    if (/[^A-Za-z0-9]/.test(password)) strength += 15;
+                    
+                    return Math.min(strength, 100);
+                });
+                
+                // 密码强度文本
+                const passwordStrengthText = computed(() => {
+                    const strength = passwordStrength.value;
+                    if (strength === 0) return '';
+                    if (strength < 30) return '弱';
+                    if (strength < 60) return '中';
+                    if (strength < 80) return '强';
+                    return '非常强';
+                });
+                
+                // 密码强度颜色
+                const passwordStrengthColor = computed(() => {
+                    const strength = passwordStrength.value;
+                    if (strength === 0) return '';
+                    if (strength < 30) return 'text-red-500';
+                    if (strength < 60) return 'text-yellow-500';
+                    if (strength < 80) return 'text-green-500';
+                    return 'text-green-600';
+                });
+                
+                // 密码强度条颜色
+                const passwordStrengthBarColor = computed(() => {
+                    const strength = passwordStrength.value;
+                    if (strength === 0) return '';
+                    if (strength < 30) return 'bg-red-500';
+                    if (strength < 60) return 'bg-yellow-500';
+                    if (strength < 80) return 'bg-green-500';
+                    return 'bg-green-600';
+                });
+                
+                // 表单验证
+                const validateForm = () => {
+                    let valid = true;
+                    errors.loginName = '';
+                    errors.password = '';
+                    errors.confirmPassword = '';
+                    errors.userMail = '';
+                    errors.agreement = '';
+                    
+                    if (!registerForm.loginName.trim()) {
+                        errors.loginName = '请输入用户名';
+                        valid = false;
+                    }
+                    
+                    if (!registerForm.password) {
+                        errors.password = '请输入密码';
+                        valid = false;
+                    } else if (registerForm.password.length < 6) {
+                        errors.password = '密码长度不能少于6位';
+                        valid = false;
+                    }
+                    
+                    if (registerForm.password !== confirmPassword.value) {
+                        errors.confirmPassword = '两次输入的密码不一致';
+                        valid = false;
+                    }
+                    
+                    if (registerForm.userMail && !/^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/.test(registerForm.userMail)) {
+                        errors.userMail = '请输入有效的邮箱地址';
+                        valid = false;
+                    }
+                    
+                    if (!agreement.value) {
+                        errors.agreement = '请同意服务条款和隐私政策';
+                        valid = false;
+                    }
+                    
+                    return valid;
+                };
+                
+                // 注册处理
+                const handleRegister = async () => {
+                    if (!validateForm()) {
+                        return;
+                    }
+                    
+                    // 检查API是否可用
+                    if (!window.api || typeof window.api.register !== 'function') {
+                        console.error('API模块不可用');
+                        alert('系统错误：API模块不可用，请刷新重试');
+                        return;
+                    }
+                    
+                    loading.value = true;
+                    try {
+                        const response = await window.api.register(registerForm);
+                        
+                        console.log('注册响应:', response);
+                        
+                        if (response.code === 200) {
+                            try {
+                                if (window.toast && typeof window.toast.success === 'function') {
+                                    window.toast.success('注册成功，即将跳转到登录页面');
+                                } else {
+                                    alert('注册成功，即将跳转到登录页面');
+                                }
+                            } catch (e) {
+                                console.error('显示提示失败:', e);
+                                alert('注册成功，即将跳转到登录页面');
+                            }
+                            
+                            // 跳转到登录页
+                            setTimeout(() => {
+                                try {
+                                    window.parent.postMessage({ type: 'navigation', page: 'login' }, '*');
+                                } catch (e) {
+                                    console.error('跳转失败:', e);
+                                    if (window.parent && window.parent.location) {
+                                        window.parent.location.href = 'login.html';
+                                    }
+                                }
+                            }, 1500);
+                        } else {
+                            // 注册失败
+                            console.error('注册失败:', response);
+                            try {
+                                if (window.toast && typeof window.toast.error === 'function') {
+                                    window.toast.error(response.message || '注册失败');
+                                } else {
+                                    alert(response.message || '注册失败');
+                                }
+                            } catch (e) {
+                                alert(response.message || '注册失败');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('注册错误:', error);
+                        try {
+                            if (window.toast && typeof window.toast.error === 'function') {
+                                window.toast.error('网络错误，请稍后重试');
+                            } else {
+                                alert('网络错误，请稍后重试');
+                            }
+                        } catch (e) {
+                            alert('网络错误，请稍后重试');
+                        }
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+                
+                // 跳转到登录页
+                const goToLogin = () => {
+                    try {
+                        window.parent.postMessage({ type: 'navigation', page: 'login' }, '*');
+                    } catch (e) {
+                        console.error('跳转失败:', e);
+                        try {
+                            window.parent.location.href = 'login.html';
+                        } catch (e2) {
+                            console.error('备用跳转方式也失败:', e2);
+                            alert('跳转失败，请手动返回登录页');
+                        }
+                    }
+                };
+                
+                // 初始化函数
+                const initPage = () => {
+                    // 预加载背景图片并处理加载错误
+                    const bgImage = new Image();
+                    bgImage.onload = () => console.log('背景图片加载成功');
+                    bgImage.onerror = handleBackgroundImageError;
+                    bgImage.src = 'https://images.pexels.com/photos/373543/pexels-photo-373543.jpeg?auto=compress&cs=tinysrgb&w=1920';
+                };
+                
+                // 组件挂载后初始化
+                onMounted(initPage);
+                
+                return {
+                    registerForm,
+                    confirmPassword,
+                    agreement,
+                    loading,
+                    showPassword,
+                    showConfirmPassword,
+                    errors,
+                    passwordStrength,
+                    passwordStrengthText,
+                    passwordStrengthColor,
+                    passwordStrengthBarColor,
+                    handleRegister,
+                    goToLogin
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html> 

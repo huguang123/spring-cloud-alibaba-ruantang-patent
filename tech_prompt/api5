@@ -1,0 +1,190 @@
+好的，根据你提供的 `DocGenerateController` 文件中的接口信息，以及 `DocGenerateRequest` 和 `DocGenerateResponse` 模型类，我将生成一个详细的接口文档。
+
+### 接口文档
+
+#### 1. 基本信息
+- **标题**: 文档生成 API
+- **版本**: 1.0.0
+- **描述**: 文档生成服务的 API 文档
+
+#### 2. 接口信息
+
+##### 生成文档
+- **URL**: `http://localhost:9000/prom/api/doc-generate`
+- **方法**: `POST`
+- **描述**: 生成文档
+
+##### 请求参数
+- **Content-Type**: `application/json`
+- **请求体**: `DocGenerateRequest` 对象
+
+###### 请求体示例
+```json
+{
+  "techDomainId": 123,
+  "docTemplateId": 456,
+  "techDescription": "这是技术概述。",
+  "useAiGenerate": true
+}
+```
+
+
+##### 响应参数
+- **Content-Type**: `application/json`
+- **响应体**: `ApiResult<DocGenerateResponse>` 对象
+
+###### 响应体示例
+```json
+{
+  "code": 200,
+  "message": "文档生成成功",
+  "data": {
+    "title": "文档标题",
+    "sections": [
+      {
+        "sectionName": "分项1",
+        "content": "分项1的内容",
+        "sortOrder": 1
+      },
+      {
+        "sectionName": "分项2",
+        "content": "分项2的内容",
+        "sortOrder": 2
+      }
+    ]
+  }
+}
+```
+
+
+##### 请求体模型 (`DocGenerateRequest`)
+- **techDomainId**: `Long` - 技术领域ID
+- **docTemplateId**: `Long` - 文档模板ID
+- **techDescription**: `String` - 技术概述（用户输入）
+- **useAiGenerate**: `Boolean` - 是否使用AI辅助生成
+
+##### 响应体模型 (`ApiResult<DocGenerateResponse>`)
+- **code**: `Integer` - 响应码
+- **message**: `String` - 响应消息
+- **data**: `DocGenerateResponse` - 响应数据
+
+###### `DocGenerateResponse` 模型
+- **title**: `String` - 文档标题
+- **sections**: `List<DocSection>` - 文档分项列表
+
+###### `DocSection` 模型
+- **sectionName**: `String` - 分项名称
+- **content**: `String` - 分项内容
+- **sortOrder**: `Integer` - 排序顺序
+
+### 示例请求和响应
+
+#### 请求示例
+```http
+POST /prom/api/doc-generate HTTP/1.1
+Host: localhost:9000
+Content-Type: application/json
+
+{
+  "techDomainId": 123,
+  "docTemplateId": 456,
+  "techDescription": "这是技术概述。",
+  "useAiGenerate": true
+}
+```
+
+
+#### 响应示例
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+  "code": 200,
+  "message": "文档生成成功",
+  "data": {
+    "title": "文档标题",
+    "sections": [
+      {
+        "sectionName": "分项1",
+        "content": "分项1的内容",
+        "sortOrder": 1
+      },
+      {
+        "sectionName": "分项2",
+        "content": "分项2的内容",
+        "sortOrder": 2
+      }
+    ]
+  }
+}
+
+
+**1.6 根据技术领域ID获取文档模板**
+**URL:** `http://localhost:9000/prom/api/doc-templates/by-domain`
+- **请求方法:** `GET`
+- **请求参数:** 
+  - `domainId` (查询参数): 技术领域ID
+- **请求体示例:** 无
+- **响应状态码:** `200`
+- **响应体示例:**
+  ```json
+  {
+    "code": 200,
+    "message": "文档模板列表获取成功",
+    "data": [
+      {
+        "id": 1,
+        "templateTypeId": 1,
+        "templateTypeName": "模板类型名称1",
+        "domainId": 1,
+        "domainName": "技术领域名称1",
+        "orgId": 1,
+        "templateName": "文档模板名称1",
+        "sections": [
+          {
+            "id": 1,
+            "docTemplateId": 1,
+            "promptId": 1,
+            "sectionName": "分项名称1",
+            "sortOrder": 1,
+            "promptTemplate": {
+              "id": 1,
+              "promptName": "提示词名称1",
+              "promptContent": "提示词内容1"
+            }
+          }
+        ]
+      }
+    ]
+  }
+
+
+  
+### 6. 获取指定父级ID下的子技术领域
+
+**请求方法**: `GET`
+
+**URL**: `/api/tech-domains/children`
+
+**查询参数**:
+- `parentId` (可选): 父级技术领域的ID。如果不传，则获取所有一级技术领域。
+
+**响应**:
+- **成功**:
+  ```json
+  {
+    "code": 200,
+    "message": "子技术领域获取成功",
+    "data": [
+      {
+        "id": 1111111111111111111,
+        "domainName": "String",
+        "parentId": 1234567890123456789,
+        "parentName": "String",
+        "level": 2,
+        "description": "String",
+        "children": []
+      }
+    ]
+  }

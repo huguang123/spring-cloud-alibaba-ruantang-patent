@@ -1,4 +1,4 @@
-version: '3'
+#version: '3'
 services:
   gateway:
     container_name: gateway
@@ -36,6 +36,20 @@ services:
       - mynetwork
     depends_on:
       - service-user
+      - gateway
+
+# 前端服务，直接使用Dockerfile复制静态文件
+  frontend:
+    container_name: frontend
+    build:
+      context: ./tech_prompt
+      dockerfile: Dockerfile
+    # 不需要暴露端口，因为通过nginx访问
+    volumes:
+      - ./nginx/html:/usr/share/nginx/html # 共享卷，确保nginx可以访问前端文件
+    networks:
+      - mynetwork
+    depends_on:
       - gateway
 
 #  yuoj-backend-judge-service:

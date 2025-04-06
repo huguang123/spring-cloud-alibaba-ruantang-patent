@@ -1,0 +1,60 @@
+        // 刷新领域数据 - 获取技术领域树
+        async function refreshDomains() {
+          try {
+            loading.value = true;
+            console.log('开始加载技术领域数据...');
+            
+            // 用于调试: 启用模拟数据，暂时注释真实API调用
+            mockDomainData();
+            return;
+            
+            const response = await fetch(`${baseUrl}/tree`, {
+              method: 'GET',
+              headers: getRequestHeaders()
+            });
+            
+            console.log('API响应状态:', response.status);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP error: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log('获取到的数据:', result);
+            
+            if (result.code === 200) {
+              // 将数据平铺为一维数组
+              domains.value = flattenDomainTree(result.data);
+              console.log('处理后的domains数据:', domains.value);
+              
+              // 默认展开一级领域
+              expandedDomains.value = domains.value
+                .filter(d => d.level === 1)
+                .map(d => d.id);
+            } else {
+              throw new Error(result.message || '获取技术领域树失败');
+            }
+          } catch (error) {
+            console.error('刷新技术领域数据出错:', error);
+            handleApiError(error, '刷新技术领域数据失败');
+            // 如果API失败，添加一些模拟数据以便测试
+            mockDomainData();
+          } finally {
+            loading.value = false;
+          }
+        }
+        
+        // 添加模拟数据函数用于测试
+        function mockDomainData() {
+          console.log('使用模拟数据...');
+          domains.value = [
+            { id: 1, domainName: "机械技术领域", parentId: null, level: 1, description: "包含机械工程相关技术" },
+            { id: 2, domainName: "控制系统", parentId: null, level: 1, description: "包含自动控制系统相关技术" },
+            { id: 3, domainName: "传感器技术", parentId: null, level: 1, description: "包含各类传感器相关技术" },
+            { id: 4, domainName: "机械设计", parentId: 1, level: 2, description: "机械结构与零部件设计" },
+            { id: 5, domainName: "工业机器人", parentId: 1, level: 2, description: "工业自动化机器人技术" },
+            { id: 6, domainName: "PLC控制", parentId: 2, level: 2, description: "可编程逻辑控制器技术" },
+            { id: 7, domainName: "温度传感器", parentId: 3, level: 2, description: "各类温度测量传感器技术" }
+          ];
+          console.log('模拟数据已加载:', domains.value);
+        } 
