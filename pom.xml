@@ -148,7 +148,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version> <!-- 显式声明版本 -->
                 <configuration>
+                    <showWarnings>true</showWarnings>
+                    <source>17</source>
+                    <target>17</target>
+                    <release>17</release> <!-- 关键参数，强制模块化兼容 -->
                     <showWarnings>true</showWarnings>
                 </configuration>
             </plugin>
