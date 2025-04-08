@@ -1,9 +1,7 @@
 // API配置文件
 const apiConfig = {
   // 根据环境选择不同的基础URL
-  baseURL: process.env.NODE_ENV === 'production' 
-    ? '/' // 生产环境使用相对路径，通过nginx代理
-    : 'http://localhost:9000', // 开发环境直接访问网关
+  baseURL: '/', // 始终使用相对路径，通过nginx代理
   
   // API路径前缀
   apiPrefix: {

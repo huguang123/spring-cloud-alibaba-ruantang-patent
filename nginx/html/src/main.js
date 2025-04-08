@@ -6,7 +6,7 @@ import axios from 'axios';
 const app = createApp(App);
 
 // 设置全局API基础URL
-const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:9000';
+const apiBaseUrl = '';  // 使用相对路径，不再使用localhost
 
 // 创建axios实例
 const http = axios.create({

@@ -149,7 +149,7 @@
           };
           
           // 调用实际的登录API
-          const response = await fetch('http://localhost:9000/ums/auth/login', requestOptions);
+          const response = await fetch('/ums/auth/login', requestOptions);
           
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -261,7 +261,7 @@
             };
           }
 
-          const response = await fetch('http://localhost:9000/ums/api/users/info', {
+          const response = await fetch('/ums/api/users/info', {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -776,7 +776,7 @@
             };
             
             // 调用实际的登录API
-            const response = await fetch('http://localhost:9000/ums/auth/login', requestOptions);
+            const response = await fetch('/ums/auth/login', requestOptions);
             
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);

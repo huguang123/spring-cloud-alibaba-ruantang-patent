@@ -26,18 +26,18 @@ module.exports = defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:9000',
+        target: process.env.API_URL || 'http://gateway:9000',
         changeOrigin: true,
         pathRewrite: {
           '^/api': ''
         }
       },
       '/ums': {
-        target: 'http://localhost:9000',
+        target: process.env.API_URL || 'http://gateway:9000',
         changeOrigin: true
       },
       '/prom': {
-        target: 'http://localhost:9000',
+        target: process.env.API_URL || 'http://gateway:9000',
         changeOrigin: true
       }
     }

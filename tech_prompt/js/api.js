@@ -3,7 +3,7 @@
  */
 
 // API 接口封装
-const BASE_URL = 'http://localhost:9000/ums/auth';
+const BASE_URL = '/ums/auth';
 
 // 是否使用模拟数据（当真实API不可用时）
 const USE_MOCK = true;
