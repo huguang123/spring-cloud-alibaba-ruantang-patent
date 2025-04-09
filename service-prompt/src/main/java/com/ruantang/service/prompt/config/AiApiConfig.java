@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 /**
  * AI接口配置类
  */
@@ -11,14 +13,25 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "ai.api")
 public class AiApiConfig {
-    
+
     /**
-     * API基础URL
+     * 多个API的基础URL和密钥列表
      */
-    private String baseUrl;
-    
+    private List<AiApi> apis;
+
     /**
-     * API密钥
+     * AI API 配置项
      */
-    private String apiKey;
+    @Data
+    public static class AiApi {
+        /**
+         * API基础URL
+         */
+        private String baseUrl;
+
+        /**
+         * API密钥
+         */
+        private String apiKey;
+    }
 } 
