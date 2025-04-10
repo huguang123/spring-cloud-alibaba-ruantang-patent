@@ -401,13 +401,36 @@
             }
             
             const result = await response.json();
-            if (result.code === 200) {
-              level2Domains.value = result.data;
+              console.log('二级技术领域数据:', result); // 添加日志
+           if (result.code === 200 && result.data) {
+              // 确保返回的是数组
+              if (Array.isArray(result.data)) {
+                  level2Domains.value = result.data.map(domain => ({
+                      id: domain.id,
+                      domain_name: domain.domainName || domain.domain_name,
+                      parent_id: domain.parentId || domain.parent_id,
+                      level: domain.level
+                  }));
+              } else if (result.data.records && Array.isArray(result.data.records)) {
+                  // 如果数据在records字段中
+                  level2Domains.value = result.data.records.map(domain => ({
+                      id: domain.id,
+                      domain_name: domain.domainName || domain.domain_name,
+                      parent_id: domain.parentId || domain.parent_id,
+                      level: domain.level
+                  }));
+              } else {
+                  console.error('意外的二级领域数据格式:', result.data);
+                  level2Domains.value = [];
+              }
+
+              console.log('处理后的二级领域数据:', level2Domains.value); // 添加日志
             } else {
               throw new Error(result.message || '加载二级领域失败');
             }
           } catch (error) {
             handleApiError(error, '加载二级领域失败');
+            level2Domains.value = [];
           }
         }
         
@@ -426,13 +449,37 @@
             }
             
             const result = await response.json();
-            if (result.code === 200) {
-              level3Domains.value = result.data;
+              console.log('三级技术领域数据:', result); // 添加日志
+
+           if (result.code === 200 && result.data) {
+              // 确保返回的是数组
+              if (Array.isArray(result.data)) {
+                  level3Domains.value = result.data.map(domain => ({
+                      id: domain.id,
+                      domain_name: domain.domainName || domain.domain_name,
+                      parent_id: domain.parentId || domain.parent_id,
+                      level: domain.level
+                  }));
+              } else if (result.data.records && Array.isArray(result.data.records)) {
+                  // 如果数据在records字段中
+                  level3Domains.value = result.data.records.map(domain => ({
+                      id: domain.id,
+                      domain_name: domain.domainName || domain.domain_name,
+                      parent_id: domain.parentId || domain.parent_id,
+                      level: domain.level
+                  }));
+              } else {
+                  console.error('意外的三级领域数据格式:', result.data);
+                  level3Domains.value = [];
+              }
+
+              console.log('处理后的三级领域数据:', level3Domains.value); // 添加日志
             } else {
               throw new Error(result.message || '加载三级领域失败');
             }
           } catch (error) {
             handleApiError(error, '加载三级领域失败');
+            level3Domains.value = [];
           }
         }
         

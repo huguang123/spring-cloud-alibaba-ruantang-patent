@@ -846,6 +846,7 @@
             if (!detailTemplate) {
               throw new Error('获取模板详情失败');
             }
+            console.log('获取到的模板详情:', detailTemplate); // 添加日志
             
             // 转换API响应到编辑模板格式
             Object.assign(editingTemplate, {
@@ -862,9 +863,10 @@
                 defaultValue: p.defaultValue || '',
                 description: p.description || '',
                 enterReminder: p.enterReminder || '',
-                promRole: p.promRole || 1
+                promRole: p.promRole !== undefined ? Number(p.promRole) : 1 // 确保正确处理promRole
               }))
             });
+            console.log('处理后的编辑模板数据:', editingTemplate); // 添加日志
             
             showModal.value = true;
           } catch (error) {
@@ -989,12 +991,13 @@
               enabled: editingTemplate.enabled,
               parameters: editingTemplate.parameters.map(p => ({
                 paramKey: p.paramKey,
-                promRole: parseInt(p.promRole) || 1,
+                promRole: Number(p.promRole),
                 defaultValue: p.defaultValue || '',
                 enterReminder: p.enterReminder || '',
                 description: p.description || ''
               }))
             };
+            console.log('保存模板数据:', templateData); // 添加日志记录
             
             let saveResult;
             
