@@ -2588,6 +2588,10 @@
               } else if (Array.isArray(result.data)) {
                 console.log('检测到直接返回数组');
                 dataArray = result.data;
+              } else if (typeof result.data === 'object' && result.data !== null) {
+                // 处理单个对象情况
+                console.log('检测到单个对象返回');
+                dataArray = [result.data];
               } else {
                 console.warn('未能识别的数据结构:', result.data);
                 filteredPromptTemplates.value = [];
@@ -2596,8 +2600,8 @@
               
               console.log('处理的数据数组:', dataArray);
               
-              // 转换API返回的数据并直接设置到过滤后的模板列表
-              filteredPromptTemplates.value = dataArray.map(template => ({
+              // 转换API返回的数据并设置到全局模板列表
+              availablePromptTemplates.value = dataArray.map(template => ({
                 id: template.id,
                 section_type: template.sectionType,
                 template_name: template.promName || '未命名模板',
@@ -2605,13 +2609,17 @@
                 version: template.version || '1.0'
               }));
               
+              // 设置过滤后的提示词模板列表
+              filteredPromptTemplates.value = [...availablePromptTemplates.value];
               console.log('搜索结果处理后的提示词模板数据:', filteredPromptTemplates.value);
             } else {
+              availablePromptTemplates.value = [];
               filteredPromptTemplates.value = [];
             }
           } catch (error) {
             console.error('搜索提示词模板出错:', error);
             handleApiError(error, '搜索提示词模板失败');
+            availablePromptTemplates.value = [];
             filteredPromptTemplates.value = [];
           } finally {
             loading.value = false;

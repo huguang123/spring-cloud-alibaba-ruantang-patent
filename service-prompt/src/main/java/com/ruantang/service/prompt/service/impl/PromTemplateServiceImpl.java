@@ -9,6 +9,7 @@ import com.ruantang.mapper.prom.PromTemplateMapper;
 import com.ruantang.service.prompt.model.*;
 import com.ruantang.service.prompt.service.PromTemplateParameterService;
 import com.ruantang.service.prompt.service.PromTemplateService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * 提示词模板Service实现类
  */
 @Service
+@Slf4j
 public class PromTemplateServiceImpl extends ServiceImpl<PromTemplateMapper, PromTemplate> implements PromTemplateService {
 
     @Autowired
@@ -141,6 +143,7 @@ public class PromTemplateServiceImpl extends ServiceImpl<PromTemplateMapper, Pro
         
         // 分页查询
         Page<PromTemplate> page = new Page<>(request.getPageNum(), request.getPageSize());
+        log.info("page.getcurrent:{},page.getsize:{}", page.getCurrent(), page.getSize());
         IPage<PromTemplate> iPage = page(page, queryWrapper);
         
         // 转换结果

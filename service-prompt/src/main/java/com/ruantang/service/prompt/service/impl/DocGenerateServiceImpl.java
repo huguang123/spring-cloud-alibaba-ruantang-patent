@@ -80,7 +80,7 @@ public class DocGenerateServiceImpl implements DocGenerateService {
         // 合并所有异步任务（带超时控制）
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
         try {
-            allFutures.get(179, TimeUnit.SECONDS); // 总超时时间60秒
+            allFutures.get(299, TimeUnit.SECONDS); // 总超时时间299秒
         } catch (TimeoutException e) {
             log.warn("AI生成任务部分超时，已完成的{}个分项将被返回",
                     futures.stream().filter(CompletableFuture::isDone).count());
