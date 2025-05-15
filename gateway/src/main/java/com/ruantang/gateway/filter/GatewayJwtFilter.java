@@ -82,6 +82,9 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
                 return writeUnauthResponse(exchange, "凭证无效");
             }
 
+
+
+
             // 5. 传递用户信息
             ServerHttpRequest newRequest = request.mutate()
                     .header("X-AUTH-USER", username)

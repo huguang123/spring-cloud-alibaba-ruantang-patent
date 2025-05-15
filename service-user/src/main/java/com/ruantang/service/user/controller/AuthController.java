@@ -28,12 +28,8 @@ public class AuthController {
     @ApiOperation(value = "login", notes = "用户登录")
     @PostMapping("/login")
     public ApiResult<Object> login(@RequestBody SysUserRegisterDTO sysUserRegisterDTO) {
-//        try {
         Map<String, String> login = authService.login(sysUserRegisterDTO);
         return ApiResult.success(login);
-//        }catch (Exception e){
-//            return ApiResult.failed("用户名或密码错误");
-//        }
     }
 
     @ApiOperation(value = "logout",notes = "用户登出")

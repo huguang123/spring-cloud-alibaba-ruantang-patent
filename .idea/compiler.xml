@@ -7,10 +7,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="service-tenant" />
+        <module name="service-organization" />
         <module name="security" />
         <module name="common-service" />
         <module name="commons-mapper" />
         <module name="service-user" />
+        <module name="service-permissions" />
         <module name="service-prompt" />
         <module name="commons-entity" />
         <module name="commons" />

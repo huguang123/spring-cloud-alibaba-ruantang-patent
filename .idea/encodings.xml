@@ -14,9 +14,33 @@
     <file url="file://$PROJECT_DIR$/gateway/src/main/resources/application-dev.yml" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/security/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/security/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-organization/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-organization/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/controller/ConfigPermModuleController.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/controller/ConfigPermNodeController.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/controller/ConfigPermTemplateController.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/controller/ConfigPermVersionController.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/model/dto/ConfigPermModuleDTO.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/model/dto/ConfigPermNodeDTO.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/model/dto/ConfigPermTemplateDTO.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/model/dto/ConfigPermVersionDTO.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/repository/ConfigPermModuleRepository.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/repository/ConfigPermNodeRepository.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/service/ConfigPermModuleService.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/service/ConfigPermNodeService.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/service/ConfigPermTemplateService.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/service/ConfigPermVersionService.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/service/impl/ConfigPermModuleServiceImpl.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/service/impl/ConfigPermNodeServiceImpl.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/service/impl/ConfigPermTemplateServiceImpl.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/java/com/ruantang/service/permissions/service/impl/ConfigPermVersionServiceImpl.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-permissions/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-prompt/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-prompt/src/main/java/com/ruantang/service/prompt/controller/PromTemplateController.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-prompt/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-tenant/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/service-tenant/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-user/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/service-user/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />

@@ -23,6 +23,9 @@
         <module>service-user</module>
         <module>service-prompt</module>
         <module>common-service</module>
+        <module>service-tenant</module>
+        <module>service-permissions</module>
+        <module>service-organization</module>
     </modules>
 
     <!--统一版本控制-->

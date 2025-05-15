@@ -18,7 +18,9 @@ import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,6 +28,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +37,12 @@ import java.util.Objects;
 
 @Service
 public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> implements AuthService {
+
+    @Value("${security.jwt.tokenHeader:Authorization}")
+    private String tokenHeader;
+
+    @Value("${security.jwt.tokenPrefix:Bearer }")
+    private String tokenPrefix;
 
     @Resource
     private SysUsersMapper sysUsersMapper;
@@ -87,6 +96,17 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         //将用户信息存入redis缓存，设置失效时间，退出登录时删除
         redisService.set("AUTH:TOKEN:" + userDetails.getUsername(), token, jwtTokenUtil.getExpiration());
 
+        //获取用户权限信息
+        // 使用 Hash 结构存储更高效
+        Map<String, Object> authMap = new HashMap<>();
+        authMap.put("roles", List.of("ADMIN","USER"));
+        authMap.put("apis", List.of("GET:/users/**","POST:/products"));
+        authMap.put("buttons", List.of("user:delete","data:export"));
+
+        //获取用户权限信息存储到redis缓存，设置失效时间
+        redisService.set("AUTH:PERMISSION:" + userDetails.getUsername(), authMap, jwtTokenUtil.getExpiration());
+
+
         return tokenMap;
     }
 
@@ -94,7 +114,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
     @Override
     public Boolean logout() {
         //请求头获取token，通过token获取用户名，删除redis缓存
-        String token = request.getHeader("Authorization");
+        String token = resolveToken(request);
         String username = jwtTokenUtil.getUserNameFromToken(token);
         if (redisService.hasKey("AUTH:TOKEN:" + username)) {
             redisService.del("AUTH:TOKEN:" + username);
@@ -133,5 +153,14 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         BeanUtils.copyProperties(sysUsers, sysUserDTO);
 
         return sysUserDTO;
+    }
+
+    private String resolveToken(HttpServletRequest request) {
+        String header = request.getHeader(tokenHeader);
+        // 判断是否为空，并且以 Bearer 开头
+        if (StringUtils.hasText(header) && header.startsWith(tokenPrefix)) {
+            return header.substring(tokenPrefix.length()).trim();
+        }
+        return null;
     }
 }

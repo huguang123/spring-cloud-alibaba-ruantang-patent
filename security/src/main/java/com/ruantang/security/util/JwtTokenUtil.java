@@ -45,10 +45,16 @@ public class JwtTokenUtil {
     private String secret;
 
     /**
-     * Token失效时间 :60*60*3
+     * Token失效时间 :60*60*24
      */
-    @Value("${jwt.expiration:10800}")
+    @Value("${jwt.expiration:89400}")
     private Long expiration;
+
+    /**
+     * 权限失效时间 :60*60*24*7
+     */
+    @Value("${jwt.expiration:604800}")
+    private Long expirationPerm;
 
     /**
      * Bearer Token
