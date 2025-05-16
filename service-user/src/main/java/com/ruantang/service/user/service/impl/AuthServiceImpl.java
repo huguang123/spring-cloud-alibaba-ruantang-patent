@@ -87,6 +87,37 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
             throw new UsernameNotFoundException("用户名或密码错误");
         }
 
+
+//        {
+//            "roles": ["ADMIN", "USER"],
+//            "apis": [
+//            "GET:/api/users/**",
+//                    "POST:/api/products",
+//                    "DELETE:/api/orders/*"
+//  ],
+//            "buttons": [
+//            "user:create",
+//                    "data:export"
+//  ],
+//            "data_perms": {
+//            "user": {
+//                "policy_code": "user_data_policy",
+//                        "condition_type": 1,
+//                        "condition_expression": "tenant_id = ${tenantId} AND org_id IN (${orgIds})",
+//                        "effect_tables": "sys_users, user_profile"
+//            },
+//            "order": {
+//                "policy_code": "order_data_policy",
+//                        "condition_type": 2,
+//                        "condition_expression": "#spelExpressionParser.parseExpression('status == ''completed''')",
+//                        "effect_tables": "orders, order_details"
+//            }
+//        }
+//        }
+
+
+
+
         //通过验证，生成jwt
         UserDetails userDetails = new SysUserDetails(sysUsers, sysRolesService.getRolesList());
         String token = jwtTokenUtil.generateToken(userDetails);
