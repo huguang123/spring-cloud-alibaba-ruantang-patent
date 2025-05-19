@@ -1,4 +1,4 @@
-package com.ruantang.service.organization.service.organization;
+package com.ruantang.service.organization;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
