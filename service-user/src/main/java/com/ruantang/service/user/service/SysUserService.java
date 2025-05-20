@@ -1,34 +1,46 @@
 package com.ruantang.service.user.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.ruantang.entity.sys.SysRoles;
+import com.ruantang.commons.api.ApiResult;
 import com.ruantang.entity.sys.SysUsers;
-import com.ruantang.service.user.model.dto.SysUserRegisterDTO;
-import com.ruantang.service.user.model.dto.UserDTO;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.List;
-import java.util.Map;
+import com.ruantang.service.user.model.dto.SysUserDTO;
+import com.ruantang.service.user.model.request.UserQueryRequest;
 
 /**
  * 用户服务接口
- * 提供用户相关的业务操作
  */
 public interface SysUserService extends IService<SysUsers> {
-
+    
     /**
-     * 获取用户数据（用于Spring Security认证）
-     *
-     * @param loginName 登录账号
-     * @return UserDetails对象
-     */
-    UserDetails loadUserByUsername(String loginName);
-
-    /**
-     * 根据用户名获取用户信息
-     *
+     * 根据用户名查询用户
+     * 
      * @param username 用户名
-     * @return 用户信息DTO
+     * @return 用户DTO
      */
-    UserDTO getUserByUsername(String username);
-}
+    SysUserDTO getUserByUsername(String username);
+    
+    /**
+     * 分页查询用户
+     * 
+     * @param request 查询请求
+     * @return 分页用户列表
+     */
+    ApiResult<Page<SysUserDTO>> queryUserPage(UserQueryRequest request);
+    
+    /**
+     * 根据ID查询用户
+     * 
+     * @param id 用户ID
+     * @return 用户详情
+     */
+    ApiResult<SysUserDTO> getUserById(Long id);
+    
+    /**
+     * 删除用户
+     * 
+     * @param id 用户ID
+     * @return 删除结果
+     */
+    ApiResult<Boolean> deleteUserById(Long id);
+} 

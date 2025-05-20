@@ -9,10 +9,12 @@ import com.ruantang.service.permissions.model.request.RoleCreateRequest;
 import com.ruantang.service.permissions.model.request.RolePermissionRequest;
 import com.ruantang.service.permissions.model.request.RoleQueryRequest;
 import com.ruantang.service.permissions.model.request.RoleUpdateRequest;
+import com.ruantang.service.permissions.model.request.UserRoleAssignRequest;
 import com.ruantang.service.permissions.service.SysRoleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -91,5 +93,19 @@ public class SysRoleController {
             @ApiParam(value = "角色类型", required = true)
             @PathVariable("roleType") Integer roleType) {
         return roleService.listRolesByType(roleType);
+    }
+    
+    @PostMapping("/assign-user-roles")
+    @ApiOperation("为用户分配角色")
+    public ApiResult<Boolean> assignUserRoles(@Valid @RequestBody UserRoleAssignRequest request) {
+        return roleService.assignUserRoles(request);
+    }
+    
+    @GetMapping("/user/{userId}")
+    @ApiOperation("获取用户绑定的角色列表")
+    public ApiResult<List<SysRolesDTO>> getUserRoles(
+            @ApiParam(value = "用户ID", required = true)
+            @PathVariable("userId") Long userId) {
+        return roleService.getUserRoles(userId);
     }
 } 

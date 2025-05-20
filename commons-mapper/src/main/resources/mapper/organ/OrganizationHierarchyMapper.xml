@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruantang.mapper.organ.OrganizationHierarchyMapper">
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO organization_hierarchy (id, ancestor, descendant, depth)
+        VALUES
+        <foreach collection="hierarchies" item="item" separator=",">
+            (#{item.id}, #{item.ancestor}, #{item.descendant}, #{item.depth})
+        </foreach>
+    </insert>
+    
+    <select id="findAncestors" resultType="java.lang.Long">
+        SELECT ancestor FROM organization_hierarchy 
+        WHERE descendant = #{orgId}
+        ORDER BY depth ASC
+    </select>
+    
+    <select id="findDescendants" resultType="java.lang.Long">
+        SELECT descendant FROM organization_hierarchy 
+        WHERE ancestor = #{orgId} AND ancestor != descendant
+        ORDER BY depth ASC
+    </select>
+    
+    <select id="findDirectChildren" resultType="java.lang.Long">
+        SELECT descendant FROM organization_hierarchy 
+        WHERE ancestor = #{orgId} AND depth = 1
+    </select>
+    
+    <delete id="deleteByOrgId">
+        DELETE FROM organization_hierarchy
+        WHERE descendant = #{orgId} OR ancestor = #{orgId}
+    </delete>
+    
+</mapper> 

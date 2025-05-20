@@ -5,7 +5,9 @@ import com.ruantang.commons.api.ApiResult;
 import com.ruantang.commons.exception.ApiException;
 import com.ruantang.entity.perm.PermRelPolicyBinding;
 import com.ruantang.entity.perm.RelRolesPerm;
+import com.ruantang.entity.rel.RelUserRoles;
 import com.ruantang.entity.sys.SysRoles;
+import com.ruantang.mapper.rel.RelUserRolesMapper;
 import com.ruantang.service.permissions.model.dto.PermDataPolicyDTO;
 import com.ruantang.service.permissions.model.dto.PermDTO;
 import com.ruantang.service.permissions.model.dto.PermNodeTreeDTO;
@@ -15,6 +17,7 @@ import com.ruantang.service.permissions.model.request.RoleCreateRequest;
 import com.ruantang.service.permissions.model.request.RolePermissionRequest;
 import com.ruantang.service.permissions.model.request.RoleQueryRequest;
 import com.ruantang.service.permissions.model.request.RoleUpdateRequest;
+import com.ruantang.service.permissions.model.request.UserRoleAssignRequest;
 import com.ruantang.service.permissions.repository.PermRelPolicyBindingRepository;
 import com.ruantang.service.permissions.repository.RelRolesPermRepository;
 import com.ruantang.service.permissions.repository.SysRolesRepository;
@@ -28,8 +31,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +51,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final PermService permService;
     private final PermDataPolicyService policyService;
     private final ConfigPermTemplateService templateService;
+    private final RelUserRolesMapper relUserRolesMapper;
 
     @Override
     public ApiResult<Page<SysRolesDTO>> queryRolePage(RoleQueryRequest request) {
@@ -289,7 +295,95 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public ApiResult<List<SysRolesDTO>> listRolesByType(Integer roleType) {
         List<SysRoles> roles = rolesRepository.listRolesByType(roleType);
-        List<SysRolesDTO> roleDTOs = RoleUtil.convertToRoleDTOList(roles);
-        return ApiResult.success(roleDTOs);
+        List<SysRolesDTO> roleDTOList = RoleUtil.convertToRoleDTOList(roles);
+        return ApiResult.success(roleDTOList);
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResult<Boolean> assignUserRoles(UserRoleAssignRequest request) {
+        Long userId = request.getUserId();
+        List<Long> roleIds = request.getRoleIds();
+        
+        if (userId == null) {
+            return ApiResult.failed("用户ID不能为空");
+        }
+        
+        if (roleIds == null) {
+            roleIds = new ArrayList<>();
+        }
+        
+        try {
+            // 1. 删除用户当前所有角色关联
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RelUserRoles> queryWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+            queryWrapper.eq(RelUserRoles::getUserId, userId);
+            relUserRolesMapper.delete(queryWrapper);
+            
+            // 2. 添加新的角色关联
+            if (!roleIds.isEmpty()) {
+                long currentTime = System.currentTimeMillis();
+                
+                for (Long roleId : roleIds) {
+                    // 检查角色是否存在
+                    SysRoles role = rolesRepository.getRoleById(roleId);
+                    if (role == null) {
+                        continue; // 跳过不存在的角色
+                    }
+                    
+                    // 创建用户-角色关联记录
+                    RelUserRoles userRole = new RelUserRoles();
+                    userRole.setUserId(userId);
+                    userRole.setRoleId(roleId);
+                    userRole.setCreateTime(currentTime);
+                    
+                    // 插入关联记录
+                    relUserRolesMapper.insert(userRole);
+                }
+            }
+            
+            return ApiResult.success(true);
+        } catch (Exception e) {
+            return ApiResult.failed("分配用户角色失败：" + e.getMessage());
+        }
+    }
+
+    @Override
+    public ApiResult<List<SysRolesDTO>> getUserRoles(Long userId) {
+        if (userId == null) {
+            return ApiResult.failed("用户ID不能为空");
+        }
+        
+        try {
+            // 查询用户-角色关联
+            com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RelUserRoles> queryWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+            queryWrapper.eq(RelUserRoles::getUserId, userId);
+            List<RelUserRoles> userRoles = relUserRolesMapper.selectList(queryWrapper);
+            
+            if (CollectionUtils.isEmpty(userRoles)) {
+                return ApiResult.success(Collections.emptyList());
+            }
+            
+            // 获取角色ID列表
+            List<Long> roleIds = userRoles.stream()
+                    .map(RelUserRoles::getRoleId)
+                    .collect(Collectors.toList());
+            
+            // 查询角色信息
+            List<SysRoles> roles = new ArrayList<>();
+            for (Long roleId : roleIds) {
+                SysRoles role = rolesRepository.getRoleById(roleId);
+                if (role != null) {
+                    roles.add(role);
+                }
+            }
+            
+            // 转换为DTO
+            List<SysRolesDTO> roleDTOs = RoleUtil.convertToRoleDTOList(roles);
+            
+            return ApiResult.success(roleDTOs);
+        } catch (Exception e) {
+            // 记录日志
+            return ApiResult.failed("获取用户角色列表失败：" + e.getMessage());
+        }
     }
 } 

@@ -24,6 +24,12 @@ public class SysUsers {
     @ApiModelProperty(value = "密码")
     private String password;
 
+    @ApiModelProperty(value = "租户ID")
+    private Long tenantId;
+
+    @ApiModelProperty(value = "所属组织ID")
+    private Long orgId;
+
     @ApiModelProperty(value = "职级")
     private Integer level;
 
@@ -44,9 +50,6 @@ public class SysUsers {
 
     @ApiModelProperty(value = "QQ联系方式")
     private String qq;
-
-//    @ApiModelProperty(value = "删除状态（0：未删除，1：删除）")
-//    private Boolean isDeleted;
 
     @ApiModelProperty(value = "创建人")
     private Long createBy;

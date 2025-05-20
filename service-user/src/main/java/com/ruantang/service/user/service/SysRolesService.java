@@ -10,7 +10,15 @@ public interface SysRolesService extends IService<SysRoles> {
     /**
      * 可访问角色列表
      *
-     * @return
+     * @return 所有角色列表
      */
     List<SysRoles> getRolesList();
+    
+    /**
+     * 获取用户的角色列表
+     *
+     * @param userId 用户ID
+     * @return 用户的角色列表
+     */
+    List<SysRoles> getUserRoles(Long userId);
 }

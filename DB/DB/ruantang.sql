@@ -227,7 +227,6 @@ CREATE TABLE `perm_rel_policy_binding`  (
 --用户角色映射表
 CREATE TABLE `rel_user_roles`  (
   `id` bigint NOT NULL COMMENT '主键id',
-  `tenant_id` bigint NOT NULL COMMENT '所属租户ID',
   `user_id` bigint NULL DEFAULT NULL COMMENT '用户id',
   `role_id` bigint NULL DEFAULT NULL COMMENT '角色id',
   `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',

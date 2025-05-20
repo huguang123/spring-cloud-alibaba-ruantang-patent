@@ -9,6 +9,7 @@ import com.ruantang.service.permissions.model.request.RoleCreateRequest;
 import com.ruantang.service.permissions.model.request.RolePermissionRequest;
 import com.ruantang.service.permissions.model.request.RoleQueryRequest;
 import com.ruantang.service.permissions.model.request.RoleUpdateRequest;
+import com.ruantang.service.permissions.model.request.UserRoleAssignRequest;
 
 import java.util.List;
 
@@ -62,4 +63,20 @@ public interface SysRoleService {
      * 根据角色类型获取角色列表
      */
     ApiResult<List<SysRolesDTO>> listRolesByType(Integer roleType);
+    
+    /**
+     * 为用户分配角色
+     *
+     * @param request 用户角色分配请求
+     * @return API结果
+     */
+    ApiResult<Boolean> assignUserRoles(UserRoleAssignRequest request);
+    
+    /**
+     * 获取用户绑定的角色列表
+     *
+     * @param userId 用户ID
+     * @return 用户绑定的角色列表
+     */
+    ApiResult<List<SysRolesDTO>> getUserRoles(Long userId);
 } 

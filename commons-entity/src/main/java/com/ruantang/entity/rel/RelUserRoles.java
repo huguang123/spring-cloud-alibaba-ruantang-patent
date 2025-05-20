@@ -24,4 +24,7 @@ public class RelUserRoles {
     @ApiModelProperty(value = "角色id")
     private Long roleId;
 
+    @ApiModelProperty(value = "创建时间")
+    private Long createTime;
+
 }

@@ -1,17 +1,20 @@
-package com.ruantang.service.user.model.dto;
+package com.ruantang.service.user.model.request;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * 操作权限DTO
+ * 操作权限更新请求
  */
 @Data
-@ApiModel(value = "操作权限DTO", description = "操作权限数据传输对象")
-public class PermDTO {
+@ApiModel(value = "操作权限更新请求", description = "操作权限更新请求参数")
+public class PermUpdateRequest {
     
-    @ApiModelProperty(value = "主键ID")
+    @NotNull(message = "权限ID不能为空")
+    @ApiModelProperty(value = "权限ID", required = true)
     private Long id;
     
     @ApiModelProperty(value = "权限标识(如order:view)")
@@ -31,10 +34,4 @@ public class PermDTO {
     
     @ApiModelProperty(value = "权限描述")
     private String permsDescription;
-    
-    @ApiModelProperty(value = "创建时间")
-    private Long createTime;
-    
-    @ApiModelProperty(value = "更新时间")
-    private Long updateTime;
 } 

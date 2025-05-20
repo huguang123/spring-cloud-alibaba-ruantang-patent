@@ -19,6 +19,12 @@ public class SysUserDTO {
     @ApiModelProperty(value = "密码")
     private String password;
 
+    @ApiModelProperty(value = "所属租户ID")
+    private Long tenantId;
+
+    @ApiModelProperty(value = "所属组织ID")
+    private Long orgId;
+
     @ApiModelProperty(value = "职级")
     private Integer level;
 

@@ -1,11 +1,11 @@
-package com.ruantang.mapper.sys;
+package com.ruantang.mapper.organ;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.ruantang.entity.sys.SysPerms;
+import com.ruantang.entity.organ.Organization;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
 @Mapper
 @Repository
-public interface SysPermsMapper extends BaseMapper<SysPerms> {
-}
+public interface OrganizationMapper extends BaseMapper<Organization> {
+} 

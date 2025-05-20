@@ -6,13 +6,17 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruantang.commons.exception.Asserts;
 import com.ruantang.commons.service.RedisService;
+import com.ruantang.entity.sys.SysRoles;
 import com.ruantang.entity.sys.SysUsers;
 import com.ruantang.mapper.sys.SysUsersMapper;
 import com.ruantang.security.util.JwtTokenUtil;
 import com.ruantang.service.user.domain.SysUserDetails;
+import com.ruantang.service.user.model.dto.PermDataPolicyDTO;
 import com.ruantang.service.user.model.dto.SysUserDTO;
 import com.ruantang.service.user.model.dto.SysUserRegisterDTO;
 import com.ruantang.service.user.service.AuthService;
+import com.ruantang.service.user.service.PermDataPolicyService;
+import com.ruantang.service.user.service.PermService;
 import com.ruantang.service.user.service.SysRolesService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> implements AuthService {
@@ -61,9 +66,14 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
 
     @Resource
     private SysRolesService sysRolesService;
+    
+    @Resource
+    private PermService permService;
+    
+    @Resource
+    private PermDataPolicyService policyService;
 
     @Resource
-//    @Lazy
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -87,37 +97,6 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
             throw new UsernameNotFoundException("用户名或密码错误");
         }
 
-
-//        {
-//            "roles": ["ADMIN", "USER"],
-//            "apis": [
-//            "GET:/api/users/**",
-//                    "POST:/api/products",
-//                    "DELETE:/api/orders/*"
-//  ],
-//            "buttons": [
-//            "user:create",
-//                    "data:export"
-//  ],
-//            "data_perms": {
-//            "user": {
-//                "policy_code": "user_data_policy",
-//                        "condition_type": 1,
-//                        "condition_expression": "tenant_id = ${tenantId} AND org_id IN (${orgIds})",
-//                        "effect_tables": "sys_users, user_profile"
-//            },
-//            "order": {
-//                "policy_code": "order_data_policy",
-//                        "condition_type": 2,
-//                        "condition_expression": "#spelExpressionParser.parseExpression('status == ''completed''')",
-//                        "effect_tables": "orders, order_details"
-//            }
-//        }
-//        }
-
-
-
-
         //通过验证，生成jwt
         UserDetails userDetails = new SysUserDetails(sysUsers, sysRolesService.getRolesList());
         String token = jwtTokenUtil.generateToken(userDetails);
@@ -127,16 +106,36 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         //将用户信息存入redis缓存，设置失效时间，退出登录时删除
         redisService.set("AUTH:TOKEN:" + userDetails.getUsername(), token, jwtTokenUtil.getExpiration());
 
-        //获取用户权限信息
-        // 使用 Hash 结构存储更高效
+        // 获取用户角色信息
+        List<SysRoles> userRoles = sysRolesService.getUserRoles(sysUsers.getId());
+        List<String> roleNames = userRoles.stream()
+                .map(SysRoles::getRolesCode)
+                .collect(Collectors.toList());
+        
+        // 获取用户角色ID列表
+        List<Long> roleIds = userRoles.stream()
+                .map(SysRoles::getId)
+                .collect(Collectors.toList());
+        
+        // 获取用户操作权限按钮标识列表
+        List<String> buttons = permService.getUserPermButtons(sysUsers.getId());
+        
+        // 获取用户API权限列表
+        List<String> apis = permService.getUserApiPerms(sysUsers.getId());
+        
+        // 获取用户数据权限策略
+        Map<String, PermDataPolicyDTO> dataPolicies = policyService.getUserDataPolicies(sysUsers.getId());
+        
+        // 构建用户权限信息
         Map<String, Object> authMap = new HashMap<>();
-        authMap.put("roles", List.of("ADMIN","USER"));
-        authMap.put("apis", List.of("GET:/users/**","POST:/products"));
-        authMap.put("buttons", List.of("user:delete","data:export"));
+        authMap.put("roles", roleNames);
+        authMap.put("role_ids", roleIds);
+        authMap.put("apis", apis);
+        authMap.put("buttons", buttons);
+        authMap.put("data_perms", dataPolicies);
 
-        //获取用户权限信息存储到redis缓存，设置失效时间
+        // 将用户权限信息存储到redis缓存，设置失效时间
         redisService.set("AUTH:PERMISSION:" + userDetails.getUsername(), authMap, jwtTokenUtil.getExpiration());
-
 
         return tokenMap;
     }
@@ -149,6 +148,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         String username = jwtTokenUtil.getUserNameFromToken(token);
         if (redisService.hasKey("AUTH:TOKEN:" + username)) {
             redisService.del("AUTH:TOKEN:" + username);
+            redisService.del("AUTH:PERMISSION:" + username);
             return true;
         }
         return false;
