@@ -16,9 +16,6 @@ public class TemplateUpdateRequest {
     @NotNull(message = "模板ID不能为空")
     private Long id;
 
-    @ApiModelProperty("模板编码")
-    private String templateCode;
-
     @ApiModelProperty("模板名称")
     private String templateName;
 

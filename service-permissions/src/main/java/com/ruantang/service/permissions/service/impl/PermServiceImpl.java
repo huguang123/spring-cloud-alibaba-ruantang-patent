@@ -34,7 +34,7 @@ public class PermServiceImpl implements PermService {
                 request.getPermsName(),
                 request.getPermsCode(),
                 request.getApiMethod(),
-                request.getPermType(),
+                request.getPermScope(),
                 page
         );
         

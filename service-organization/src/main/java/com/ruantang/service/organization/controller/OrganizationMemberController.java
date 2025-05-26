@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
  * 组织成员控制器
  */
 @RestController
-@RequestMapping("/api/v1/org/members")
+@RequestMapping("/api/org/members")
 @Api(tags = "组织成员管理接口")
 @RequiredArgsConstructor
 public class OrganizationMemberController {

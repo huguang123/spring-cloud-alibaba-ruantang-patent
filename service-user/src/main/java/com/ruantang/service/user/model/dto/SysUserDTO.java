@@ -46,9 +46,6 @@ public class SysUserDTO {
     @ApiModelProperty(value = "QQ联系方式")
     private String qq;
 
-    @ApiModelProperty(value = "删除状态（0：未删除，1：删除）")
-    private Boolean isDeleted;
-
     @ApiModelProperty(value = "创建人")
     private Long createBy;
 

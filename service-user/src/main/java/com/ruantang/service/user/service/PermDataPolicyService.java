@@ -78,4 +78,12 @@ public interface PermDataPolicyService {
      * @return 数据权限策略Map，key为表名，value为策略对象
      */
     Map<String, PermDataPolicyDTO> getUserDataPolicies(Long userId);
+    
+    /**
+     * 根据数据策略ID列表查询数据权限策略列表
+     * 
+     * @param policyIds 数据策略ID列表
+     * @return 数据权限策略列表
+     */
+    List<PermDataPolicyDTO> getPoliciesByIds(List<Long> policyIds);
 } 

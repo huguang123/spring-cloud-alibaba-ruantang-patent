@@ -135,4 +135,13 @@ public class PermDataPolicyRepositoryImpl implements PermDataPolicyRepository {
         // 查询策略列表
         return policyMapper.selectBatchIds(policyIds);
     }
+    
+    @Override
+    public List<PermDataPolicy> getPoliciesByIds(List<Long> policyIds) {
+        if (CollectionUtils.isEmpty(policyIds)) {
+            return Collections.emptyList();
+        }
+        
+        return policyMapper.selectBatchIds(policyIds);
+    }
 } 

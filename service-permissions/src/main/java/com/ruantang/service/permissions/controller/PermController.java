@@ -10,6 +10,7 @@ import com.ruantang.service.permissions.service.PermService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,8 @@ import org.springframework.web.bind.annotation.*;
 @Api(tags = "操作权限管理")
 public class PermController {
 
-    private final PermService permService;
+    @Resource
+    private PermService permService;
     
     /**
      * 分页查询操作权限

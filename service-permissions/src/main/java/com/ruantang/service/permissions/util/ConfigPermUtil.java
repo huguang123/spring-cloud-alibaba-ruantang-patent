@@ -245,7 +245,6 @@ public class ConfigPermUtil {
         
         // 设置类型名称
         dto.setNodeTypeName(getNodeTypeName(node.getNodeType()));
-        dto.setDataScopeName(getDataScopeName(node.getDataScope()));
         dto.setPermTypeName(getPermTypeName(node.getPermType()));
         
         return dto;

@@ -77,4 +77,36 @@ public interface PermService {
      * @return API权限列表
      */
     List<String> getUserApiPerms(Long userId);
+    
+    /**
+     * 根据权限ID列表获取按钮标识列表
+     * 
+     * @param permIds 权限ID列表
+     * @return 按钮标识列表
+     */
+    List<String> getButtonsByPermIds(List<Long> permIds);
+    
+    /**
+     * 根据权限ID列表获取API权限列表
+     * 
+     * @param permIds 权限ID列表
+     * @return API权限列表
+     */
+    List<String> getApisByPermIds(List<Long> permIds);
+    
+    /**
+     * 根据角色ID列表获取按钮标识列表
+     * 
+     * @param roleIds 角色ID列表
+     * @return 按钮标识列表
+     */
+    List<String> getButtonsByRoleIds(List<Long> roleIds);
+    
+    /**
+     * 根据角色ID列表获取API权限列表
+     * 
+     * @param roleIds 角色ID列表
+     * @return API权限列表
+     */
+    List<String> getApisByRoleIds(List<Long> roleIds);
 } 

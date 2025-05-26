@@ -3,10 +3,16 @@ package com.ruantang.service.tenant.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruantang.commons.api.ApiResult;
 import com.ruantang.service.tenant.model.dto.TenantDTO;
+import com.ruantang.service.tenant.model.dto.TenantRoleDTO;
+import com.ruantang.service.tenant.model.dto.TenantRolePermissionDTO;
+import com.ruantang.service.tenant.model.dto.TenantTemplateBindDTO;
 import com.ruantang.service.tenant.model.request.TenantBindTemplatesRequest;
 import com.ruantang.service.tenant.model.request.TenantCreateRequest;
 import com.ruantang.service.tenant.model.request.TenantQueryRequest;
+import com.ruantang.service.tenant.model.request.TenantRoleVerifyRequest;
 import com.ruantang.service.tenant.model.request.TenantUpdateRequest;
+
+import java.util.List;
 
 /**
  * 租户服务接口
@@ -69,4 +75,28 @@ public interface TenantService {
      * @return 解绑结果
      */
     ApiResult<Boolean> unbindTenantTemplate(Long tenantId, Long templateId);
+    
+    /**
+     * 根据租户ID查询绑定的模板列表
+     * 
+     * @param tenantId 租户ID
+     * @return 模板列表
+     */
+    ApiResult<List<TenantTemplateBindDTO>> getTenantTemplates(Long tenantId);
+    
+    /**
+     * 根据租户ID查询绑定的角色列表
+     * 
+     * @param tenantId 租户ID
+     * @return 角色列表
+     */
+    ApiResult<List<TenantRoleDTO>> getTenantRoles(Long tenantId);
+    
+    /**
+     * 验证租户角色权限状态
+     * 
+     * @param request 验证请求
+     * @return 角色权限信息列表
+     */
+    ApiResult<List<TenantRolePermissionDTO>> verifyTenantRolePermissions(TenantRoleVerifyRequest request);
 } 

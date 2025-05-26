@@ -21,7 +21,7 @@ import java.util.List;
  * 组织控制器
  */
 @RestController
-@RequestMapping("/api/v1/organizations")
+@RequestMapping("/api/org/organizations")
 @Api(tags = "组织管理接口")
 @RequiredArgsConstructor
 public class OrganizationController {
@@ -31,7 +31,7 @@ public class OrganizationController {
     @GetMapping("/tree")
     @ApiOperation("获取组织树结构")
     public ApiResult<List<OrganizationTreeDTO>> getOrganizationTree(
-            @ApiParam(value = "租户ID", required = true) @RequestParam Long tenantId) {
+            @ApiParam(value = "租户ID", required = true) @RequestParam(name = "tenantId") Long tenantId) {
         return organizationService.getOrganizationTree(tenantId);
     }
     
@@ -44,7 +44,7 @@ public class OrganizationController {
     @GetMapping("/{id}")
     @ApiOperation("根据ID查询组织详情")
     public ApiResult<OrganizationDTO> getOrganizationById(
-            @ApiParam(value = "组织ID", required = true) @PathVariable Long id) {
+            @ApiParam(value = "组织ID", required = true) @PathVariable(name = "id") Long id) {
         return organizationService.getOrganizationById(id);
     }
     
@@ -63,7 +63,7 @@ public class OrganizationController {
     @DeleteMapping("/{id}")
     @ApiOperation("删除组织")
     public ApiResult<Boolean> deleteOrganization(
-            @ApiParam(value = "组织ID", required = true) @PathVariable Long id) {
+            @ApiParam(value = "组织ID", required = true) @PathVariable(name = "id") Long id) {
         return organizationService.deleteOrganization(id);
     }
 } 

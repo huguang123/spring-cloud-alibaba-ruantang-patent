@@ -11,6 +11,7 @@ import com.ruantang.service.tenant.model.dto.RolePermissionDTO;
 import com.ruantang.service.tenant.model.dto.SysRolesDTO;
 import com.ruantang.service.tenant.model.dto.TenantTemplateDTO;
 import com.ruantang.service.tenant.model.dto.TenantTemplateRoleDTO;
+import com.ruantang.service.tenant.model.dto.TemplateRoleDTO;
 import com.ruantang.service.tenant.model.request.TemplateCreateRequest;
 import com.ruantang.service.tenant.model.request.TemplateQueryRequest;
 import com.ruantang.service.tenant.model.request.TemplateRoleBindRequest;
@@ -137,13 +138,13 @@ public class TenantTemplateServiceImpl implements TenantTemplateService {
         }
         
         // 验证模板编码是否重复
-        if (StringUtils.hasText(request.getTemplateCode()) 
-                && !request.getTemplateCode().equals(existTemplate.getTemplateCode())) {
-            TenantTemplate codeExistTemplate = templateRepository.getTemplateByCode(request.getTemplateCode());
-            if (codeExistTemplate != null) {
-                return ApiResult.failed("模板编码已存在");
-            }
-        }
+//        if (StringUtils.hasText(request.getTemplateCode())
+//                && !request.getTemplateCode().equals(existTemplate.getTemplateCode())) {
+//            TenantTemplate codeExistTemplate = templateRepository.getTemplateByCode(request.getTemplateCode());
+//            if (codeExistTemplate != null) {
+//                return ApiResult.failed("模板编码已存在");
+//            }
+//        }
         
         // 转换为实体对象
         TenantTemplate template = TemplateUtil.convertToEntity(request);
@@ -278,5 +279,42 @@ public class TenantTemplateServiceImpl implements TenantTemplateService {
         }
         
         return ApiResult.success(true);
+    }
+
+    @Override
+    public ApiResult<List<TemplateRoleDTO>> getTemplateRoles(Long id) {
+        // 验证模板是否存在
+        TenantTemplate template = templateRepository.getTemplateById(id);
+        if (template == null) {
+            return ApiResult.failed("模板不存在");
+        }
+        
+        // 获取模板绑定的角色关联
+        List<TenantRelTemplateRole> roleRelations = templateRoleRepository.listRolesByTemplateId(id);
+        if (roleRelations == null || roleRelations.isEmpty()) {
+            return ApiResult.success(new ArrayList<>());
+        }
+        
+        // 构建返回结果
+        List<TemplateRoleDTO> templateRoleDTOs = new ArrayList<>();
+        
+        for (TenantRelTemplateRole relation : roleRelations) {
+            TemplateRoleDTO templateRoleDTO = new TemplateRoleDTO();
+            templateRoleDTO.setId(relation.getId());
+            templateRoleDTO.setTemplateId(relation.getTemplateId());
+            templateRoleDTO.setRoleId(relation.getRoleId());
+            templateRoleDTO.setIsInherit(relation.getIsInherit());
+//            templateRoleDTO.setPermissionSnapshot(relation.getPermissionSnapshot());
+            
+            // 查询角色信息
+            ApiResult<SysRolesDTO> roleResult = roleFeignClient.getRoleById(relation.getRoleId());
+            if (roleResult != null && roleResult.getCode() == 200 && roleResult.getData() != null) {
+                templateRoleDTO.setRole(roleResult.getData());
+            }
+            
+            templateRoleDTOs.add(templateRoleDTO);
+        }
+        
+        return ApiResult.success(templateRoleDTOs);
     }
 }

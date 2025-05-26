@@ -2,11 +2,15 @@ package com.ruantang.service.tenant.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruantang.commons.api.ApiResult;
+import com.ruantang.service.tenant.model.dto.SysRolesDTO;
+import com.ruantang.service.tenant.model.dto.TemplateRoleDTO;
 import com.ruantang.service.tenant.model.dto.TenantTemplateDTO;
 import com.ruantang.service.tenant.model.request.TemplateCreateRequest;
 import com.ruantang.service.tenant.model.request.TemplateQueryRequest;
 import com.ruantang.service.tenant.model.request.TemplateRoleBindRequest;
 import com.ruantang.service.tenant.model.request.TemplateUpdateRequest;
+
+import java.util.List;
 
 /**
  * 租户模板服务接口
@@ -60,4 +64,12 @@ public interface TenantTemplateService {
      * @return 绑定结果
      */
     ApiResult<Boolean> bindTemplateRoles(TemplateRoleBindRequest request);
+    
+    /**
+     * 根据模板ID查询绑定的角色列表
+     *
+     * @param id 模板ID
+     * @return 角色列表
+     */
+    ApiResult<List<TemplateRoleDTO>> getTemplateRoles(Long id);
 } 

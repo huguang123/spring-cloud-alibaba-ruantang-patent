@@ -29,9 +29,6 @@ public class PermDTO {
     @ApiModelProperty(value = "权限作用域")
     private String permScope;
     
-    @ApiModelProperty(value = "权限类型名称")
-    private String permTypeName;
-    
     @ApiModelProperty(value = "权限描述")
     private String permsDescription;
     

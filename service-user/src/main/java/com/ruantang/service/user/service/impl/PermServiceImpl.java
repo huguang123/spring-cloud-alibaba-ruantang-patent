@@ -209,4 +209,80 @@ public class PermServiceImpl implements PermService {
                 .map(RelUserRoles::getRoleId)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public List<String> getButtonsByPermIds(List<Long> permIds) {
+        if (CollectionUtils.isEmpty(permIds)) {
+            return Collections.emptyList();
+        }
+        
+        // 根据权限ID获取权限信息
+        List<Perm> perms = permRepository.getPermsByIds(permIds);
+        if (CollectionUtils.isEmpty(perms)) {
+            return Collections.emptyList();
+        }
+        
+        // 筛选按钮类型权限并提取按钮标识
+        return perms.stream()
+                .filter(perm -> "BUTTON".equals(perm.getPermType()))
+                .map(Perm::getPermsCode)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<String> getApisByPermIds(List<Long> permIds) {
+        if (CollectionUtils.isEmpty(permIds)) {
+            return Collections.emptyList();
+        }
+        
+        // 根据权限ID获取权限信息
+        List<Perm> perms = permRepository.getPermsByIds(permIds);
+        if (CollectionUtils.isEmpty(perms)) {
+            return Collections.emptyList();
+        }
+        
+        // 筛选API类型权限并提取API地址
+        return perms.stream()
+                .filter(perm -> "API".equals(perm.getPermType()))
+                .map(perm -> perm.getApiMethod() + ":" + perm.getApiPath())
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<String> getButtonsByRoleIds(List<Long> roleIds) {
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return Collections.emptyList();
+        }
+        
+        // 根据角色ID获取权限信息
+        List<Perm> perms = permRepository.getPermsByRoleIds(roleIds);
+        if (CollectionUtils.isEmpty(perms)) {
+            return Collections.emptyList();
+        }
+        
+        // 筛选按钮类型权限并提取按钮标识
+        return perms.stream()
+                .filter(perm -> "BUTTON".equals(perm.getPermType()))
+                .map(Perm::getPermsCode)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public List<String> getApisByRoleIds(List<Long> roleIds) {
+        if (CollectionUtils.isEmpty(roleIds)) {
+            return Collections.emptyList();
+        }
+        
+        // 根据角色ID获取权限信息
+        List<Perm> perms = permRepository.getPermsByRoleIds(roleIds);
+        if (CollectionUtils.isEmpty(perms)) {
+            return Collections.emptyList();
+        }
+        
+        // 筛选API类型权限并提取API地址
+        return perms.stream()
+                .filter(perm -> "API".equals(perm.getPermType()))
+                .map(perm -> perm.getApiMethod() + ":" + perm.getApiPath())
+                .collect(Collectors.toList());
+    }
 } 

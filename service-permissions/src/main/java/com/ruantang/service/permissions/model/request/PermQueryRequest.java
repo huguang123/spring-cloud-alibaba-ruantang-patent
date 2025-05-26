@@ -19,9 +19,9 @@ public class PermQueryRequest {
     
     @ApiModelProperty(value = "HTTP方法(GET、POST、PUT、DELETE)")
     private String apiMethod;
-    
-    @ApiModelProperty(value = "权限类型")
-    private String permType;
+
+    @ApiModelProperty(value = "权限作用域（PLATFORM:平台角色/TENANT:租户角色/ALL:通用）")
+    private String permScope;
     
     @ApiModelProperty(value = "页码", example = "1")
     private Integer pageNum = 1;
