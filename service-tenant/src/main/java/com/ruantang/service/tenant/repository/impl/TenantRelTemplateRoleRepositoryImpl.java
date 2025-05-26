@@ -32,6 +32,18 @@ public class TenantRelTemplateRoleRepositoryImpl implements TenantRelTemplateRol
     }
 
     @Override
+    public List<TenantRelTemplateRole> listTemplatesByRoleId(Long roleId) {
+        if (roleId == null) {
+            return List.of();
+        }
+        
+        LambdaQueryWrapper<TenantRelTemplateRole> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TenantRelTemplateRole::getRoleId, roleId);
+        
+        return roleRelMapper.selectList(queryWrapper);
+    }
+
+    @Override
     public TenantRelTemplateRole getByTemplateIdAndRoleId(Long templateId, Long roleId) {
         if (templateId == null || roleId == null) {
             return null;
@@ -121,5 +133,15 @@ public class TenantRelTemplateRoleRepositoryImpl implements TenantRelTemplateRol
         }
         
         return true;
+    }
+
+    @Override
+    public boolean checkRoleBindingToTemplate(Long roleId) {
+        if (roleId == null) {
+            return false;
+        }
+        LambdaQueryWrapper<TenantRelTemplateRole> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TenantRelTemplateRole::getRoleId, roleId);
+        return roleRelMapper.selectCount(queryWrapper) > 0;
     }
 } 

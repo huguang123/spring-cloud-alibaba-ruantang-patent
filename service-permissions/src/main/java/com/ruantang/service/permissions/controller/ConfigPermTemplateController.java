@@ -10,7 +10,9 @@ import com.ruantang.service.permissions.service.ConfigPermTemplateService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,16 +25,8 @@ import org.springframework.web.bind.annotation.*;
 @Api(tags = "配置权限模板管理")
 public class ConfigPermTemplateController {
 
-    private final ConfigPermTemplateService templateService;
-    
-    /**
-     * 分页查询配置权限模板
-     */
-//    @PostMapping("/page")
-//    @ApiOperation("分页查询配置权限模板")
-//    public ApiResult<Page<ConfigPermTemplateDTO>> queryTemplatePage(@RequestBody TemplateQueryRequest request) {
-//        return templateService.queryTemplatePage(request);
-//    }
+    @Resource
+    private ConfigPermTemplateService templateService;
     
     /**
      * 根据ID获取配置权限模板详情

@@ -103,4 +103,14 @@ public class TenantRepositoryImpl implements TenantRepository {
         queryWrapper.eq(TenantRelTenantTemplate::getTenantId,tenantId);
         return tenantRelTenantTemplateMapper.selectList(queryWrapper);
     }
+
+    @Override
+    public boolean isTemplateBoundToTenant(Long templateId) {
+        if (templateId == null) {
+            return false;
+        }
+        LambdaQueryWrapper<TenantRelTenantTemplate> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TenantRelTenantTemplate::getTemplateId, templateId);
+        return tenantRelTenantTemplateMapper.selectCount(queryWrapper) > 0;
+    }
 } 

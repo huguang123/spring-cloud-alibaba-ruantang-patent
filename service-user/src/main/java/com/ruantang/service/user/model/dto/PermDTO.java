@@ -29,6 +29,9 @@ public class PermDTO {
     @ApiModelProperty(value = "权限作用域（PLATFORM:平台角色/TENANT:租户角色/ALL:通用）")
     private String permScope;
     
+    @ApiModelProperty(value = "权限类型(API:接口权限 BUTTON:按钮权限)")
+    private String permType;
+    
     @ApiModelProperty(value = "权限描述")
     private String permsDescription;
     

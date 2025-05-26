@@ -37,7 +37,6 @@ public class OrganizationHierarchyRepositoryImpl implements OrganizationHierarch
         
         // 添加自身到自身的关系（深度为0）
         OrganizationHierarchy selfRel = new OrganizationHierarchy();
-        selfRel.setId(generateId());
         selfRel.setAncestor(orgId);
         selfRel.setDescendant(orgId);
         selfRel.setDepth(0);
@@ -52,7 +51,6 @@ public class OrganizationHierarchyRepositoryImpl implements OrganizationHierarch
             int depth = 1;
             for (Long ancestor : ancestors) {
                 OrganizationHierarchy ancestorRel = new OrganizationHierarchy();
-                ancestorRel.setId(generateId());
                 ancestorRel.setAncestor(ancestor);
                 ancestorRel.setDescendant(orgId);
                 ancestorRel.setDepth(depth);
@@ -116,13 +114,5 @@ public class OrganizationHierarchyRepositoryImpl implements OrganizationHierarch
         List<Long> children = findDirectChildren(orgId);
         return !children.isEmpty();
     }
-    
-    /**
-     * 生成ID（实际项目中应当使用全局ID生成器）
-     * 
-     * @return 生成的ID
-     */
-    private Long generateId() {
-        return System.currentTimeMillis();
-    }
+
 } 

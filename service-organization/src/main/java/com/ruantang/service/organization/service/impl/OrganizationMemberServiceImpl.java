@@ -1,6 +1,7 @@
 package com.ruantang.service.organization.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruantang.commons.api.ApiResult;
 import com.ruantang.entity.organ.Organization;
@@ -201,23 +202,23 @@ public class OrganizationMemberServiceImpl implements OrganizationMemberService 
         }
         
         try {
-            // 解除用户与组织的绑定
-            user.setOrgId(null);
-            
-            // 如果选择了同时解绑租户关系
-            if (unbindTenant) {
-                user.setTenantId(null);
-            }
-            
-            sysUsersMapper.updateById(user);
-            
-            // 清除用户角色
+            // 使用UpdateWrapper强制更新null值
+            UpdateWrapper<SysUsers> updateWrapper = new UpdateWrapper<SysUsers>()
+                    .eq("id", userId)
+                    .set("org_id", null)
+                    // 根据unbindTenant条件动态设置租户ID
+                    .set(unbindTenant, "tenant_id", null);
+
+            // 执行更新操作
+            int rows = sysUsersMapper.update(null, updateWrapper);
+
+            // 清除用户角色（保持原有逻辑）
             UserRoleAssignRequest roleRequest = new UserRoleAssignRequest();
             roleRequest.setUserId(userId);
             roleRequest.setRoleIds(Collections.emptyList());
             sysRoleFeignClient.assignUserRoles(roleRequest);
-            
-            return ApiResult.success(true);
+
+            return ApiResult.success(rows > 0);
         } catch (Exception e) {
             return ApiResult.failed("解绑用户失败：" + e.getMessage());
         }

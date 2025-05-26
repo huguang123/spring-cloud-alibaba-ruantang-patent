@@ -3,15 +3,24 @@ package com.ruantang.service.tenant.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruantang.commons.api.ApiResult;
 import com.ruantang.service.tenant.model.dto.TenantDTO;
+import com.ruantang.service.tenant.model.dto.TenantRoleDTO;
+import com.ruantang.service.tenant.model.dto.TenantRolePermissionDTO;
+import com.ruantang.service.tenant.model.dto.TenantTemplateBindDTO;
 import com.ruantang.service.tenant.model.request.TenantBindTemplatesRequest;
 import com.ruantang.service.tenant.model.request.TenantCreateRequest;
 import com.ruantang.service.tenant.model.request.TenantQueryRequest;
+import com.ruantang.service.tenant.model.request.TenantRoleVerifyRequest;
 import com.ruantang.service.tenant.model.request.TenantUpdateRequest;
 import com.ruantang.service.tenant.service.TenantService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 /**
@@ -20,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/tenant/tenants")
 @RequiredArgsConstructor
+@Api(tags = "租户管理")
 public class TenantController {
     
     private final TenantService tenantService;
@@ -109,5 +119,46 @@ public class TenantController {
             @PathVariable("templateId") Long templateId
     ) {
         return tenantService.unbindTenantTemplate(tenantId, templateId);
+    }
+    
+    /**
+     * 查询租户绑定的模板列表
+     * 
+     * @param tenantId 租户ID
+     * @return 模板列表
+     */
+    @GetMapping("/{tenantId}/templates")
+    @ApiOperation("查询租户绑定的模板列表")
+    public ApiResult<List<TenantTemplateBindDTO>> getTenantTemplates(
+            @ApiParam(value = "租户ID", required = true)
+            @PathVariable("tenantId") Long tenantId) {
+        return tenantService.getTenantTemplates(tenantId);
+    }
+    
+    /**
+     * 查询租户绑定的角色列表
+     * 
+     * @param tenantId 租户ID
+     * @return 角色列表
+     */
+    @GetMapping("/{tenantId}/roles")
+    @ApiOperation("查询租户绑定的角色列表")
+    public ApiResult<List<TenantRoleDTO>> getTenantRoles(
+            @ApiParam(value = "租户ID", required = true)
+            @PathVariable("tenantId") Long tenantId) {
+        return tenantService.getTenantRoles(tenantId);
+    }
+    
+    /**
+     * 验证租户角色权限状态
+     * 
+     * @param request 验证请求
+     * @return 角色权限信息列表
+     */
+    @PostMapping("/roles/verify")
+    @ApiOperation("验证租户角色权限状态")
+    public ApiResult<List<TenantRolePermissionDTO>> verifyTenantRolePermissions(
+            @Validated @RequestBody TenantRoleVerifyRequest request) {
+        return tenantService.verifyTenantRolePermissions(request);
     }
 }

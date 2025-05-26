@@ -105,4 +105,13 @@ public class PermRepositoryImpl implements PermRepository {
         // 查询权限列表
         return permMapper.selectBatchIds(permIds);
     }
+    
+    @Override
+    public List<Perm> getPermsByIds(List<Long> permIds) {
+        if (CollectionUtils.isEmpty(permIds)) {
+            return Collections.emptyList();
+        }
+        
+        return permMapper.selectBatchIds(permIds);
+    }
 } 

@@ -55,7 +55,7 @@ public interface SysRoleFeignClient {
      * @param userId
      * @return
      */
-    @GetMapping("/user/{userId}")
+    @GetMapping("/api/perm/roles/user/{userId}")
     ApiResult<List<SysRolesDTO>> getUserRoles(@PathVariable("userId") Long userId);
 }
 

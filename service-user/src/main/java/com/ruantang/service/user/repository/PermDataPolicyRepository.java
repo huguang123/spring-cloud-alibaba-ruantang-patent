@@ -76,4 +76,12 @@ public interface PermDataPolicyRepository {
      * @return 数据权限策略列表
      */
     List<PermDataPolicy> getPoliciesByTenantId(Long tenantId);
+    
+    /**
+     * 根据数据策略ID列表查询数据权限策略列表
+     * 
+     * @param policyIds 数据策略ID列表
+     * @return 数据权限策略列表
+     */
+    List<PermDataPolicy> getPoliciesByIds(List<Long> policyIds);
 } 

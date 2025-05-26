@@ -108,7 +108,7 @@
                 <configuration>
                     <mainClass>com.ruantang.service.organization.ServiceOrganizationApplication
                     </mainClass>
-                    <skip>true</skip>
+<!--                    <skip>true</skip>-->
                 </configuration>
                 <executions>
                     <execution>

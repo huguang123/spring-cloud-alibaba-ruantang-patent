@@ -19,6 +19,10 @@ public class PermCreateRequest {
     @NotBlank(message = "权限编码不能为空")
     @ApiModelProperty(value = "权限编码", required = true)
     private String permsCode;
+
+    @NotBlank(message = "权限类型不能为空")
+    @ApiModelProperty(value = "权限类型", required = true)
+    private String permType;
     
     @ApiModelProperty(value = "HTTP方法(GET、POST、PUT、DELETE)")
     private String apiMethod;

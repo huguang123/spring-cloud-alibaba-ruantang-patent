@@ -1,30 +1,36 @@
 package com.ruantang.service.user.service.impl;
 
 import cn.hutool.core.util.RandomUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.ruantang.commons.api.ApiResult;
 import com.ruantang.commons.exception.Asserts;
 import com.ruantang.commons.service.RedisService;
 import com.ruantang.entity.sys.SysRoles;
 import com.ruantang.entity.sys.SysUsers;
 import com.ruantang.mapper.sys.SysUsersMapper;
 import com.ruantang.security.util.JwtTokenUtil;
+import com.ruantang.service.user.client.TenantFeignClient;
 import com.ruantang.service.user.domain.SysUserDetails;
 import com.ruantang.service.user.model.dto.PermDataPolicyDTO;
 import com.ruantang.service.user.model.dto.SysUserDTO;
 import com.ruantang.service.user.model.dto.SysUserRegisterDTO;
+import com.ruantang.service.user.model.dto.TenantDTO;
+import com.ruantang.service.user.model.dto.TenantRolePermissionDTO;
+import com.ruantang.service.user.model.request.TenantRoleVerifyRequest;
 import com.ruantang.service.user.service.AuthService;
 import com.ruantang.service.user.service.PermDataPolicyService;
 import com.ruantang.service.user.service.PermService;
 import com.ruantang.service.user.service.SysRolesService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,15 +38,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> implements AuthService {
 
     @Value("${security.jwt.tokenHeader:Authorization}")
@@ -72,6 +83,9 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
     
     @Resource
     private PermDataPolicyService policyService;
+    
+    @Resource
+    private TenantFeignClient tenantFeignClient;
 
     @Resource
     private PasswordEncoder passwordEncoder;
@@ -81,17 +95,13 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
 
         //检查是否存在账号对应用户
         SysUsers sysUsers = sysUsersMapper.selectOne(new LambdaQueryWrapper<SysUsers>().eq(SysUsers::getLoginName, sysUserRegisterDTO.getLoginName()));
-        System.out.println("sysUsers="+sysUsers);
-        System.out.println("测试日志更新时间提醒");
         if (Objects.isNull(sysUsers)) {
-            System.out.println("怪事件");
             throw new UsernameNotFoundException("用户名或密码错误");
         }
 
         //进行用户认证
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(sysUserRegisterDTO.getLoginName(), sysUserRegisterDTO.getPassword());
         Authentication authenticate = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-        System.out.println("authenticate="+authenticate);
         //认证未通过
         if (Objects.isNull(authenticate)) {
             throw new UsernameNotFoundException("用户名或密码错误");
@@ -100,7 +110,6 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         //通过验证，生成jwt
         UserDetails userDetails = new SysUserDetails(sysUsers, sysRolesService.getRolesList());
         String token = jwtTokenUtil.generateToken(userDetails);
-        System.out.println("token="+token);
         HashMap<String, String> tokenMap = new HashMap<>();
         tokenMap.put("token", token);
         //将用户信息存入redis缓存，设置失效时间，退出登录时删除
@@ -117,29 +126,154 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
                 .map(SysRoles::getId)
                 .collect(Collectors.toList());
         
-        // 获取用户操作权限按钮标识列表
-        List<String> buttons = permService.getUserPermButtons(sysUsers.getId());
+        // 构建权限信息
+        Set<String> buttons = new HashSet<>();
+        Set<String> apis = new HashSet<>();
+        Map<String, PermDataPolicyDTO> dataPolicies = new HashMap<>();
+        log.info("roleIds:{}",roleIds);
         
-        // 获取用户API权限列表
-        List<String> apis = permService.getUserApiPerms(sysUsers.getId());
-        
-        // 获取用户数据权限策略
-        Map<String, PermDataPolicyDTO> dataPolicies = policyService.getUserDataPolicies(sysUsers.getId());
+        // 获取用户所属租户ID
+        Long tenantId = sysUsers.getTenantId();
+        if (tenantId != null && !roleIds.isEmpty()) {
+            // 调用租户服务验证角色权限状态
+            TenantRoleVerifyRequest verifyRequest = new TenantRoleVerifyRequest();
+            verifyRequest.setTenantId(tenantId);
+            verifyRequest.setRoleIds(roleIds);
+            
+            ApiResult<List<TenantRolePermissionDTO>> verifyResult = tenantFeignClient.verifyTenantRolePermissions(verifyRequest);
+            log.info("verifyResult:{}",verifyResult);
+            
+            if (verifyResult != null && verifyResult.getCode() == 200 && verifyResult.getData() != null) {
+                List<TenantRolePermissionDTO> rolePermissions = verifyResult.getData();
+                
+                // 分类角色：继承权限变更的角色和不继承的角色
+                List<Long> inheritRoleIds = new ArrayList<>();
+                
+                for (TenantRolePermissionDTO rolePermission : rolePermissions) {
+                    // 是否继承权限变更(1:继承 0:不继承)
+                    if (rolePermission.getIsInherit() != null && rolePermission.getIsInherit() == 1) {
+                        // 继承权限变更，使用原有逻辑获取权限
+                        inheritRoleIds.add(rolePermission.getRoleId());
+                    } else {
+                        // 不继承权限变更，从权限快照中获取权限
+                        String permissionSnapshot = rolePermission.getPermissionSnapshot();
+                        if (!StringUtils.isEmpty(permissionSnapshot)) {
+                            try {
+                                JSONObject snapshot = JSON.parseObject(permissionSnapshot);
+                                
+                                // 获取权限ID列表
+                                List<Long> permIds = snapshot.getJSONArray("permIds").toJavaList(Long.class);
+                                if (!CollectionUtils.isEmpty(permIds)) {
+                                    // 根据权限ID获取按钮和API权限
+                                    List<String> roleButtons = permService.getButtonsByPermIds(permIds);
+                                    List<String> roleApis = permService.getApisByPermIds(permIds);
+                                    
+                                    buttons.addAll(roleButtons);
+                                    apis.addAll(roleApis);
+                                }
+                                
+                                // 获取数据策略ID列表
+                                List<Long> dataPolicyIds = snapshot.getJSONArray("dataPolicyIds").toJavaList(Long.class);
+                                if (!CollectionUtils.isEmpty(dataPolicyIds)) {
+                                    // 根据数据策略ID获取数据策略
+                                    List<PermDataPolicyDTO> policies = policyService.getPoliciesByIds(dataPolicyIds);
+                                    if (!CollectionUtils.isEmpty(policies)) {
+                                        for (PermDataPolicyDTO policy : policies) {
+                                            dataPolicies.put(policy.getEffectTables(), policy);
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                // 解析权限快照失败，记录日志
+                                System.err.println("Parse permission snapshot failed: " + e.getMessage());
+                            }
+                        }
+                    }
+                }
+                
+                // 处理继承权限变更的角色
+                if (!inheritRoleIds.isEmpty()) {
+                    log.info("inheritRoleIds:{}",inheritRoleIds);
+                    // 获取这些角色的操作权限
+                    List<String> inheritButtons = permService.getButtonsByRoleIds(inheritRoleIds);
+                    List<String> inheritApis = permService.getApisByRoleIds(inheritRoleIds);
+                    log.info("inheritApis:{}",inheritApis);
+                    
+                    buttons.addAll(inheritButtons);
+                    apis.addAll(inheritApis);
+                    
+                    // 获取这些角色的数据权限策略
+                    List<PermDataPolicyDTO> inheritPolicies = policyService.getPoliciesByRoleIds(inheritRoleIds);
+                    if (!CollectionUtils.isEmpty(inheritPolicies)) {
+                        for (PermDataPolicyDTO policy : inheritPolicies) {
+                            dataPolicies.put(policy.getEffectTables(), policy);
+                        }
+                    }
+                }
+            } else {
+                // 验证失败或无结果，使用原有逻辑获取所有权限
+                List<String> allButtons = permService.getUserPermButtons(sysUsers.getId());
+                List<String> allApis = permService.getUserApiPerms(sysUsers.getId());
+                Map<String, PermDataPolicyDTO> allPolicies = policyService.getUserDataPolicies(sysUsers.getId());
+                
+                buttons.addAll(allButtons);
+                apis.addAll(allApis);
+                dataPolicies.putAll(allPolicies);
+            }
+        } else {
+            // 无租户ID或角色，使用原有逻辑获取所有权限
+            List<String> allButtons = permService.getUserPermButtons(sysUsers.getId());
+            List<String> allApis = permService.getUserApiPerms(sysUsers.getId());
+            Map<String, PermDataPolicyDTO> allPolicies = policyService.getUserDataPolicies(sysUsers.getId());
+            
+            buttons.addAll(allButtons);
+            apis.addAll(allApis);
+            dataPolicies.putAll(allPolicies);
+        }
         
         // 构建用户权限信息
         Map<String, Object> authMap = new HashMap<>();
         authMap.put("roles", roleNames);
         authMap.put("role_ids", roleIds);
-        authMap.put("apis", apis);
-        authMap.put("buttons", buttons);
+        authMap.put("apis", new ArrayList<>(apis));
+        authMap.put("buttons", new ArrayList<>(buttons));
         authMap.put("data_perms", dataPolicies);
+        
+        // 添加用户平台类型信息，用于网关验证防止跨平台访问
+        // 默认为未知类型
+        Integer userPlatformType = 0;
+        String userPlatformTypeName = "未知平台类型";
+        
+        // 获取租户类型信息
+        if (tenantId != null) {
+            try {
+                ApiResult<TenantDTO> tenantResult = tenantFeignClient.getTenantById(tenantId);
+                if (tenantResult != null && tenantResult.getCode() == 200 && tenantResult.getData() != null) {
+                    TenantDTO tenant = tenantResult.getData();
+                    // 提取租户类型作为用户平台类型
+                    // 1：平台管理租户、2：企业商户租户、3：代理所租户
+                    userPlatformType = tenant.getTenantType();
+                    userPlatformTypeName = tenant.getTenantTypeName();
+                }
+            } catch (Exception e) {
+                // 获取租户信息失败，记录日志但不影响登录流程
+                System.err.println("Failed to get tenant info: " + e.getMessage());
+            }
+        } else {
+            // 无租户ID的情况，设置为游客类型
+            userPlatformType = 0;
+            userPlatformTypeName = "未关联租户";
+        }
+        
+        // 只存储用户平台类型信息，简化网关判断逻辑
+        authMap.put("user_platform_type", userPlatformType);
+        authMap.put("user_platform_type_name", userPlatformTypeName);
 
         // 将用户权限信息存储到redis缓存，设置失效时间
-        redisService.set("AUTH:PERMISSION:" + userDetails.getUsername(), authMap, jwtTokenUtil.getExpiration());
+        redisService.set("AUTH:PERMISSION:" + userDetails.getUsername(), JSON.toJSONString(authMap), jwtTokenUtil.getExpiration());
 
         return tokenMap;
     }
-
 
     @Override
     public Boolean logout() {

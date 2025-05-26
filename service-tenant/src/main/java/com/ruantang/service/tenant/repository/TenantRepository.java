@@ -87,4 +87,12 @@ public interface TenantRepository {
      * @return 模板关联列表
      */
     List<TenantRelTenantTemplate> getTenantTemplates(Long tenantId);
+
+    /**
+     * 检查模板是否已绑定到任何租户
+     *
+     * @param templateId 模板ID
+     * @return 是否绑定
+     */
+    boolean isTemplateBoundToTenant(Long templateId);
 } 

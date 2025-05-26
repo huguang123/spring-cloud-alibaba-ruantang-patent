@@ -1,6 +1,7 @@
 package com.ruantang.service.tenant.repository;
 
 import com.ruantang.entity.tenant.TenantRelTemplateRole;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 import java.util.List;
 
@@ -16,6 +17,14 @@ public interface TenantRelTemplateRoleRepository {
      * @return 角色关联列表
      */
     List<TenantRelTemplateRole> listRolesByTemplateId(Long templateId);
+
+    /**
+     * 根据角色ID查询关联的模板
+     *
+     * @param roleId 角色ID
+     * @return 模板关联列表
+     */
+    List<TenantRelTemplateRole> listTemplatesByRoleId(Long roleId);
 
     /**
      * 根据模板ID和角色ID查询关联
@@ -66,4 +75,12 @@ public interface TenantRelTemplateRoleRepository {
      * @return 是否成功
      */
     boolean batchSaveRelations(List<TenantRelTemplateRole> relations);
+
+    /**
+     * 检查角色是否绑定到任何模板
+     *
+     * @param roleId 角色ID
+     * @return 是否绑定
+     */
+    boolean checkRoleBindingToTemplate(Long roleId);
 } 

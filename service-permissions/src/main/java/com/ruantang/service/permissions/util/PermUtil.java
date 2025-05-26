@@ -69,9 +69,6 @@ public class PermUtil {
         PermDTO dto = new PermDTO();
         BeanUtils.copyProperties(perm, dto);
         
-        // 设置类型名称
-        dto.setPermTypeName(getPermTypeName(perm.getPermScope()));
-        
         return dto;
     }
     

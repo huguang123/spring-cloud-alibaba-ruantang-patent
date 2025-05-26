@@ -38,19 +38,58 @@ services:
       - service-user
       - gateway
 
+  service-tenant:
+    container_name: service-tenant
+    build:
+      context: ./service-tenant
+      dockerfile: Dockerfile
+    ports:
+      - "9800:9800"
+    networks:
+      - mynetwork
+    depends_on:
+      - service-user
+      - gateway
+
+  service-permissions:
+    container_name: service-permissions
+    build:
+      context: ./service-permissions
+      dockerfile: Dockerfile
+    ports:
+      - "9500:9500"
+    networks:
+      - mynetwork
+    depends_on:
+      - service-user
+      - gateway
+
+  service-organization:
+    container_name: service-organization
+    build:
+      context: ./service-organization
+      dockerfile: Dockerfile
+    ports:
+      - "9400:9400"
+    networks:
+      - mynetwork
+    depends_on:
+      - service-user
+      - gateway
+
 # 前端服务，直接使用Dockerfile复制静态文件
   frontend:
-    container_name: frontend
+    container_name: admin-frontend
     build:
-      context: ./tech_prompt
+      context: ./admin-frontend
       dockerfile: Dockerfile
     # 不需要暴露端口，因为通过nginx访问
     volumes:
       - ./nginx/html:/usr/share/nginx/html # 共享卷，确保nginx可以访问前端文件
     networks:
       - mynetwork
-    depends_on:
-      - gateway
+#    depends_on:
+#      - gateway
 
 #  yuoj-backend-judge-service:
 #    container_name: yuoj-backend-judge-service

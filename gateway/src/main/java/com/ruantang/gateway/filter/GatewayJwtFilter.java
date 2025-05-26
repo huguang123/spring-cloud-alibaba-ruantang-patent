@@ -1,5 +1,6 @@
 package com.ruantang.gateway.filter;
 
+import com.alibaba.fastjson.JSON;
 import com.ruantang.gateway.config.IgnoreUrlsConfig;
 import com.ruantang.gateway.util.JwtTokenUtil;
 import jakarta.annotation.Resource;
@@ -17,18 +18,25 @@ import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 // 新建 GatewayJwtFilter.java
 @Component
 public class GatewayJwtFilter implements GlobalFilter, Ordered {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayJwtFilter.class);
+    
+    private static final String SUPER_ADMIN_ROLE = "ROLE_SUPER_ADMIN"; // 超级管理员角色标识
+    private static final String ADMIN_ROLE_PREFIX = "ROLE_ADMIN"; // 管理员角色前缀
+    
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
@@ -47,21 +55,19 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
-        System.out.println("进入统一验证平台");
+        log.info("进入统一验证平台");
         ServerHttpRequest request = exchange.getRequest();
+        String path = request.getPath().toString();
 
         // 1. 白名单路径放行
-
-        if (isAllowPath(request.getPath().toString())) {
-            log.info("白名单路径放行: {}", request.getPath());
-
+        if (isAllowPath(path)) {
+            log.info("白名单路径放行: {}", path);
             return chain.filter(exchange);
         }
 
         // 2. 获取Token
         String token = resolveToken(request);
-        System.out.println("token:"+token);
+        log.info("token: {}", token);
         if (token == null) {
             return writeUnauthResponse(exchange, "缺失认证凭证");
         }
@@ -70,32 +76,129 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
         try {
             String username = jwtTokenUtil.getUserNameFromToken(token);
 
-            // 4. Redis校验（核心增强）
-            String redisKey = "AUTH:TOKEN:" + username;
-            String validToken = redisTemplate.opsForValue().get(redisKey);
+            // 4. Redis校验Token（核心增强）
+            String redisTokenKey = "AUTH:TOKEN:" + username;
+            String validToken = redisTemplate.opsForValue().get(redisTokenKey);
 
             if (validToken == null) {
                 return writeUnauthResponse(exchange, "凭证已过期");
             }
-            validToken=validToken.replace("\"","");
+            
+            validToken = validToken.replace("\"", "");
             if (!validToken.equals(token)) {
                 return writeUnauthResponse(exchange, "凭证无效");
             }
+            
+            // 5. 获取用户权限信息
+            String redisPermKey = "AUTH:PERMISSION:" + username;
+            String permJson = redisTemplate.opsForValue().get(redisPermKey);
+            if (permJson == null) {
+                return writeUnauthResponse(exchange, "无法获取权限信息");
+            }
+            
+            Map<String, Object> permMap;
+            try {
+                log.info("权限字符串：{}",permJson);
+                permMap = JSON.parseObject(permJson, Map.class);
+                log.info("权限map：{}",permMap);
+            } catch (Exception e) {
+                log.error("解析权限数据异常: {}", e.getMessage());
+                return writeUnauthResponse(exchange, "权限数据解析失败");
+            }
+            
+            // 6. 验证是否是超级平台管理员
+            List<String> roles = (List<String>) permMap.get("roles");
+            if (roles != null && roles.contains(SUPER_ADMIN_ROLE)) {
+                log.info("超级平台管理员权限验证通过: {}", username);
+                return passRequest(exchange, chain, username);
+            }
+            
+            // 7. TODO: 检查是否跨系统接口访问
+            // 这部分需要在nginx配置完成后实现
+            // 思路：从请求头获取X-Platform-Type，与用户的user_platform_type进行比对
+            // Integer requestPlatformType = getRequestPlatformType(request);
+            // Integer userPlatformType = (Integer) permMap.get("user_platform_type");
+            // if (!Objects.equals(requestPlatformType, userPlatformType)) {
+            //     return writeUnauthResponse(exchange, "不允许跨平台访问");
+            // }
+            
+            // 8. 管理员角色验证
+            boolean isAdmin = false;
+            if (roles != null) {
+                for (String role : roles) {
+                    if (role.startsWith(ADMIN_ROLE_PREFIX)) {
+                        isAdmin = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (isAdmin) {
+                log.info("管理员角色验证通过: {}", username);
+                return passRequest(exchange, chain, username);
+            }
+            
+            // 9. API权限匹配检查
+            List<String> apis = (List<String>) permMap.get("apis");
+            if (apis == null || apis.isEmpty()) {
+                return writeUnauthResponse(exchange, "无API访问权限");
+            }
+            
+            if (!hasApiPermission(exchange, path, apis)) {
+                return writeUnauthResponse(exchange, "无访问权限");
+            }
 
-
-
-
-            // 5. 传递用户信息
-            ServerHttpRequest newRequest = request.mutate()
-                    .header("X-AUTH-USER", username)
-                    .build();
-
-            return chain.filter(exchange.mutate().request(newRequest).build());
+            // 权限验证通过
+            return passRequest(exchange, chain, username);
 
         } catch (Exception e) {
             log.error("Token验证异常: {}", e.getMessage());
             return writeUnauthResponse(exchange, "凭证验证失败");
         }
+    }
+    
+    /**
+     * 检查用户是否有API访问权限
+     * 权限格式为"METHOD:PATH"，例如"GET:/api/user/info"
+     * 支持通配符：
+     * - "?": 匹配单个字符
+     * - "*": 匹配零个或多个字符（不包括路径分隔符）
+     * - "**": 匹配零个或多个路径段
+     * 方法支持"*"作为通配符匹配所有HTTP方法
+     */
+    private boolean hasApiPermission(ServerWebExchange exchange, String requestPath, List<String> permittedApis) {
+        // 获取请求方法
+        String requestMethod = exchange.getRequest().getMethod().toString();
+        
+        for (String api : permittedApis) {
+            // 分离方法和路径
+            String[] parts = api.split(":", 2);
+            if (parts.length != 2) {
+                log.warn("权限格式错误: {}", api);
+                continue;
+            }
+            
+            String apiMethod = parts[0];
+            String apiPath = parts[1];
+            
+            // 方法匹配（支持*通配符）和路径匹配
+            if ((apiMethod.equals("*") || apiMethod.equalsIgnoreCase(requestMethod)) && 
+                 pathMatcher.match(apiPath, requestPath)) {
+                log.debug("API权限匹配成功: {} {} 匹配 {}", requestMethod, requestPath, api);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 验证通过，构建新请求并放行
+     */
+    private Mono<Void> passRequest(ServerWebExchange exchange, GatewayFilterChain chain, String username) {
+        ServerHttpRequest newRequest = exchange.getRequest().mutate()
+                .header("X-AUTH-USER", username)
+                .build();
+        return chain.filter(exchange.mutate().request(newRequest).build());
     }
 
     private String resolveToken(ServerHttpRequest request) {
@@ -108,12 +211,10 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isAllowPath(String path) {
-        // 配置白名单路径（示例）`
         List<String> urls = ignoreUrlsConfig.getUrls();
-        log.info("白名单路径放行: {}", path);
-        log.info("白名单路径放行: {}", urls);
-        for (String url : urls){
-            if (path.startsWith(url)){
+        log.info("检查白名单: {}", path);
+        for (String url : urls) {
+            if (path.startsWith(url)) {
                 return true;
             }
         }

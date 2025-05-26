@@ -8,7 +8,9 @@ import com.ruantang.service.permissions.model.dto.PermDTO;
 import com.ruantang.service.permissions.model.request.PermCreateRequest;
 import com.ruantang.service.permissions.model.request.PermQueryRequest;
 import com.ruantang.service.permissions.model.request.PermUpdateRequest;
+import com.ruantang.service.permissions.repository.ConfigPermNodeRepository;
 import com.ruantang.service.permissions.repository.PermRepository;
+import com.ruantang.service.permissions.repository.RelRolesPermRepository;
 import com.ruantang.service.permissions.service.PermService;
 import com.ruantang.service.permissions.util.PermUtil;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,8 @@ import java.util.List;
 public class PermServiceImpl implements PermService {
 
     private final PermRepository permRepository;
+    private final RelRolesPermRepository relRolesPermRepository;
+    private final ConfigPermNodeRepository configPermNodeRepository;
 
     @Override
     public ApiResult<Page<PermDTO>> queryPermPage(PermQueryRequest request) {
@@ -34,7 +38,7 @@ public class PermServiceImpl implements PermService {
                 request.getPermsName(),
                 request.getPermsCode(),
                 request.getApiMethod(),
-                request.getPermType(),
+                request.getPermScope(),
                 page
         );
         
@@ -117,6 +121,18 @@ public class PermServiceImpl implements PermService {
         Perm existPerm = permRepository.getPermById(id);
         if (existPerm == null) {
             return ApiResult.failed("操作权限不存在");
+        }
+        
+        // 检查权限是否绑定到角色
+        boolean boundToRole = relRolesPermRepository.checkPermBindingToRole(id);
+        if (boundToRole) {
+            return ApiResult.failed("该权限已绑定到角色，请先解绑后再删除");
+        }
+        
+        // 检查权限是否绑定到配置权限节点
+        boolean boundToNode = configPermNodeRepository.checkPermBindingToNode(id);
+        if (boundToNode) {
+            return ApiResult.failed("该权限已绑定到配置权限节点，请先解绑后再删除");
         }
         
         boolean success = permRepository.deletePermById(id);

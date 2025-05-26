@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
  * 组织成员控制器
  */
 @RestController
-@RequestMapping("/api/v1/org/members")
+@RequestMapping("/api/org/members")
 @Api(tags = "组织成员管理接口")
 @RequiredArgsConstructor
 public class OrganizationMemberController {
@@ -41,10 +41,10 @@ public class OrganizationMemberController {
     @DeleteMapping("/unbind")
     @ApiOperation("解绑用户与组织")
     public ApiResult<Boolean> unbindUserFromOrg(
-            @ApiParam(value = "组织ID", required = true) @RequestParam Long orgId,
-            @ApiParam(value = "租户ID", required = true) @RequestParam Long tenantId,
-            @ApiParam(value = "用户ID", required = true) @RequestParam Long userId,
-            @ApiParam(value = "是否同时解绑租户关系", defaultValue = "false") @RequestParam(defaultValue = "false") Boolean unbindTenant) {
+            @ApiParam(value = "组织ID", required = true) @RequestParam(name = "orgId") Long orgId,
+            @ApiParam(value = "租户ID", required = true) @RequestParam(name = "tenantId") Long tenantId,
+            @ApiParam(value = "用户ID", required = true) @RequestParam(name = "userId") Long userId,
+            @ApiParam(value = "是否同时解绑租户关系", defaultValue = "false") @RequestParam(name = "unbindTenant", defaultValue = "false") Boolean unbindTenant) {
         return organizationMemberService.unbindUserFromOrg(orgId, tenantId, userId, unbindTenant);
     }
     

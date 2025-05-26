@@ -229,4 +229,16 @@ public class PermDataPolicyServiceImpl implements PermDataPolicyService {
                 .map(RelUserRoles::getRoleId)
                 .collect(Collectors.toList());
     }
+    
+    @Override
+    public List<PermDataPolicyDTO> getPoliciesByIds(List<Long> policyIds) {
+        if (CollectionUtils.isEmpty(policyIds)) {
+            return Collections.emptyList();
+        }
+        
+        List<PermDataPolicy> policies = policyRepository.getPoliciesByIds(policyIds);
+        return policies.stream()
+                .map(PermUtil::convertToDTO)
+                .collect(Collectors.toList());
+    }
 } 

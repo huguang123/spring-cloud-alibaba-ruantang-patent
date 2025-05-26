@@ -1,4 +1,4 @@
-#!/bin/bash
+/bin/bash
 
 # 创建必要的目录
 echo "创建必要的目录..."

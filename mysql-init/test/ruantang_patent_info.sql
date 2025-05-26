@@ -1,5 +1,5 @@
 create database ruantang_patent_info;
-
+--
 use ruantang_patent_info;
 
 SET NAMES utf8mb4;
@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS `config_perm_module`;
 CREATE TABLE `config_perm_module`  (
                                        `id` bigint NOT NULL COMMENT '权限配置模块ID',
                                        `module_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模块名称（如：数据看板、交底书管理）',
-                                       `template_id` bigint NULL DEFAULT NULL COMMENT '模板ID',
+                                       `template_version_id` bigint NULL DEFAULT NULL COMMENT '模板版本ID',
                                        `module_type` tinyint NOT NULL COMMENT '模块类型（1=功能权限模块 2=数据权限模块）',
                                        `sort` int NULL DEFAULT NULL COMMENT '排序号',
                                        `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',
@@ -23,6 +23,22 @@ CREATE TABLE `config_perm_module`  (
 -- ----------------------------
 -- Records of config_perm_module
 -- ----------------------------
+INSERT INTO `config_perm_module` VALUES (1119699347957747712, '企业数据看板', 1119694451464343552, 1, 1, 1747123593191, 1747123593191);
+INSERT INTO `config_perm_module` VALUES (1119699528245710848, '客户管理', 1119694451464343552, 1, 2, 1747123636176, 1747123636176);
+INSERT INTO `config_perm_module` VALUES (1122503525805461504, '测试模块', 1119694451464343552, 1, 10, 1747792161289, 1747792161289);
+INSERT INTO `config_perm_module` VALUES (1122518041469521920, '测试模块', 1747121924671, 1, 10, 1747795622093, 1747795622093);
+INSERT INTO `config_perm_module` VALUES (1122577184163237888, '测试模块2', 1119694451464343552, 1, 40, 1747809722810, 1747809722810);
+INSERT INTO `config_perm_module` VALUES (1122600242349477888, '测试数据模块', 1119694451464343552, 2, 50, 1747815220311, 1747815220311);
+INSERT INTO `config_perm_module` VALUES (1124436170495889408, '提示词工程.技术领域管理', 1124436123284803584, 1, 8, 1748252939690, 1748488891355);
+INSERT INTO `config_perm_module` VALUES (1125424540554498048, '组织架构管理中心.组织架构', 1124436123284803584, 1, 2, 1748488585474, 1748488608130);
+INSERT INTO `config_perm_module` VALUES (1125424926489186304, '租户管理中心', 1124436123284803584, 1, 3, 1748488677490, 1748488677490);
+INSERT INTO `config_perm_module` VALUES (1125425129552220160, '权限配置中心.继承权限配置', 1124436123284803584, 1, 4, 1748488725904, 1748488725904);
+INSERT INTO `config_perm_module` VALUES (1125425350843699200, '权限配置中心.系统模板权限配置', 1124436123284803584, 1, 4, 1748488778664, 1748488778664);
+INSERT INTO `config_perm_module` VALUES (1125425403914227712, '仪表盘', 1124436123284803584, 1, 1, 1748488791317, 1748488791317);
+INSERT INTO `config_perm_module` VALUES (1125425548298948608, '企业模板管理中心.企业模板列表', 1124436123284803584, 1, 6, 1748488825741, 1748488825741);
+INSERT INTO `config_perm_module` VALUES (1125425675646406656, '角色管理中心.角色列表', 1124436123284803584, 1, 7, 1748488856103, 1748488856103);
+INSERT INTO `config_perm_module` VALUES (1125425929817034752, '提示词工程.提示词模板管理', 1124436123284803584, 1, 9, 1748488916701, 1748488916701);
+INSERT INTO `config_perm_module` VALUES (1125426026650931200, '交底书撰写', 1124436123284803584, 1, 10, 1748488939788, 1748488939788);
 
 -- ----------------------------
 -- Table structure for config_perm_node
@@ -33,7 +49,6 @@ CREATE TABLE `config_perm_node`  (
                                      `node_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '显示名称（如：查看数据看板）',
                                      `module_id` bigint NOT NULL COMMENT '所属模块ID',
                                      `node_type` tinyint NOT NULL COMMENT '节点类型（1=菜单项 2=操作按钮 3=数据字段）',
-                                     `data_scope` tinyint NULL DEFAULT NULL COMMENT '数据权限类型（当node_type=3时有效，1=查看 2=编辑）',
                                      `perm_type` tinyint NOT NULL COMMENT '绑定权限类型（0:操作权限 1:数据权限）',
                                      `perm_id` bigint NULL DEFAULT NULL COMMENT '绑定操作权限ID',
                                      `data_policy_id` bigint NULL DEFAULT NULL COMMENT '绑定数据权限ID',
@@ -46,6 +61,12 @@ CREATE TABLE `config_perm_node`  (
 -- ----------------------------
 -- Records of config_perm_node
 -- ----------------------------
+INSERT INTO `config_perm_node` VALUES (1119716444532248576, '查看企业看板', 1119699347957747712, 1, 0, 1747099406313, NULL, 0, 1747127669332, 1747127669332);
+INSERT INTO `config_perm_node` VALUES (1119716982019723264, '新增客户', 1119699528245710848, 2, 0, 1747099547464, NULL, 0, 1747127797480, 1747127797480);
+INSERT INTO `config_perm_node` VALUES (1119717663573151744, '客户数据字段', 1119699528245710848, 3, 1, NULL, 1747099204826, 0, 1747127959974, 1747127959974);
+INSERT INTO `config_perm_node` VALUES (1122600306526523392, '测试数据节点', 1122600242349477888, 1, 1, NULL, 1747099335046, 0, 1747815235611, 1747815235611);
+INSERT INTO `config_perm_node` VALUES (1122613568412454912, '测试操作权限节点', 1122503525805461504, 1, 0, 1747099436905, NULL, 1, 1747818397492, 1747818397492);
+INSERT INTO `config_perm_node` VALUES (1124436361798094848, '技术领域管理.技术领域树查询', 1124436170495889408, 1, 0, 1124436051818057728, NULL, 1, 1748252985301, 1748252985301);
 
 -- ----------------------------
 -- Table structure for config_perm_template
@@ -54,10 +75,8 @@ DROP TABLE IF EXISTS `config_perm_template`;
 CREATE TABLE `config_perm_template`  (
                                          `id` bigint NOT NULL COMMENT '模板ID',
                                          `template_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模板编码（唯一标识）',
-                                         `template_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模板名称',
-                                         `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '模板描述',
                                          `template_type` tinyint NOT NULL COMMENT '模板类型（1:平台配置模板 2:企业租户配置模板 3:代理所配置模板）',
-                                         `version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '版本号',
+                                         `base_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '基础描述',
                                          `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',
                                          `update_time` bigint NULL DEFAULT NULL COMMENT '更新时间',
                                          PRIMARY KEY (`id`) USING BTREE
@@ -66,6 +85,31 @@ CREATE TABLE `config_perm_template`  (
 -- ----------------------------
 -- Records of config_perm_template
 -- ----------------------------
+INSERT INTO `config_perm_template` VALUES (1747119619032, 'SYS_PLATFORM_DEFAULT', 1, '平台超级租户角色默认的权限配置模板', 1747119619032, 1747120575719);
+INSERT INTO `config_perm_template` VALUES (1747119717699, 'SYS_ENT_DEFAULT', 2, '新企业租户默认分配的权限模板', 1747119717699, 1747791661179);
+INSERT INTO `config_perm_template` VALUES (1747119746958, 'SYS_AGENT_DEFAULT', 3, '代理所租户角色默认的权限配置模板', 1747119746958, 1747119746958);
+
+-- ----------------------------
+-- Table structure for config_perm_version
+-- ----------------------------
+DROP TABLE IF EXISTS `config_perm_version`;
+CREATE TABLE `config_perm_version`  (
+                                        `id` bigint NOT NULL COMMENT '主键ID',
+                                        `template_id` bigint NOT NULL COMMENT '关联模板ID',
+                                        `version` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '语义化版本号',
+                                        `is_default` tinyint NULL DEFAULT NULL COMMENT '是否默认版本',
+                                        `version_description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '版本描述',
+                                        `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',
+                                        `update_time` bigint NULL DEFAULT NULL COMMENT '更新时间',
+                                        PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '模板版本配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of config_perm_version
+-- ----------------------------
+INSERT INTO `config_perm_version` VALUES (1747121924671, 1747119717699, 'v2.1.0', 0, '企业模板2.1版本', 1747121924670, 1747793439157);
+INSERT INTO `config_perm_version` VALUES (1119694451464343552, 1747119717699, 'v2.0.0', 1, '企业模板2.0大版本', 1747122425747, 1747793455103);
+INSERT INTO `config_perm_version` VALUES (1124436123284803584, 1747119619032, '1.0.1', 1, '基于 最新配置 创建的新版本', 1748252928435, 1748253165305);
 
 -- ----------------------------
 -- Table structure for organization
@@ -91,6 +135,9 @@ CREATE TABLE `organization`  (
 -- ----------------------------
 -- Records of organization
 -- ----------------------------
+INSERT INTO `organization` VALUES (1123248457251950592, '软唐', 0, 1121780694490681344, 'ruantgang01', '.1123248457251950592.', '', '', 1, '', NULL, 1747969766786, 1747969766786);
+INSERT INTO `organization` VALUES (1123251917213011968, '测试组织YEM', 0, 1121780694490681344, 'test', '.1123251917213011968.', '', '', 1, '', NULL, 1747970591704, 1747971551994);
+INSERT INTO `organization` VALUES (1124437918044262400, '提示词工程小组', 1123248457251950592, 1121780694490681344, 'prompt_org', '.1123248457251950592.1124437918044262400.', '', '', 1, '', NULL, 1748253356338, 1748253356338);
 
 -- ----------------------------
 -- Table structure for organization_hierarchy
@@ -107,6 +154,10 @@ CREATE TABLE `organization_hierarchy`  (
 -- ----------------------------
 -- Records of organization_hierarchy
 -- ----------------------------
+INSERT INTO `organization_hierarchy` VALUES (1747969766789, 1123248457251950592, 1123248457251950592, 0);
+INSERT INTO `organization_hierarchy` VALUES (1747970591709, 1123251917213011968, 1123251917213011968, 0);
+INSERT INTO `organization_hierarchy` VALUES (1748253356341, 1124437918044262400, 1124437918044262400, 0);
+INSERT INTO `organization_hierarchy` VALUES (1748253356342, 1123248457251950592, 1124437918044262400, 1);
 
 -- ----------------------------
 -- Table structure for perm
@@ -115,6 +166,7 @@ DROP TABLE IF EXISTS `perm`;
 CREATE TABLE `perm`  (
                          `id` bigint NOT NULL COMMENT '主键id',
                          `perms_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '权限标识(如order:view)',
+                         `perm_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '权限类型（API BUTTON）',
                          `perms_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '权限名称',
                          `api_method` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'HTTP方法(GET、POST、PUT、DELETE)',
                          `api_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '接口路径',
@@ -128,6 +180,12 @@ CREATE TABLE `perm`  (
 -- ----------------------------
 -- Records of perm
 -- ----------------------------
+INSERT INTO `perm` VALUES (1747099406313, 'VIEW_DASHBOARD', 'API', '查看数据看板', 'GET', '/api/dashboard', 'PLATFORM', '测试使用', 1747099406313, 1747099406313);
+INSERT INTO `perm` VALUES (1747099436905, 'CREATE_DISCLOSURE', 'API', '创建交底书', 'POST', '/api/disclosure/create', 'PLATFORM', '测试使用', 1747099436905, 1747099436905);
+INSERT INTO `perm` VALUES (1747099464625, 'EDIT_DISCLOSURE', 'API', '编辑交底书', 'PUT', '/api/disclosure/{id}', 'PLATFORM', '测试使用', 1747099464625, 1747099464625);
+INSERT INTO `perm` VALUES (1747099490679, 'DELETE_DISCLOSURE', 'API', '删除交底书', 'DELETE', '/api/disclosure/{id}', 'PLATFORM', '测试使用', 1747099490679, 1747099490679);
+INSERT INTO `perm` VALUES (1747099547464, 'MANAGE_USERS', 'API', '管理用户', '*', '/api/users/**', 'PLATFORM', '管理权限', 1747099547464, 1747985882735);
+INSERT INTO `perm` VALUES (1124436051818057728, 'tech_tree_view', 'API', '提示词工程.技术领域树查询', 'GET', '/prom/api/tech-domains/**', 'PLATFORM', '查看技术领域树', 1748252911395, 1748252911395);
 
 -- ----------------------------
 -- Table structure for perm_data_policy
@@ -141,6 +199,7 @@ CREATE TABLE `perm_data_policy`  (
                                      `condition_expression` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '条件表达式',
                                      `effect_tables` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '生效表(逗号分隔)',
                                      `priority` int NULL DEFAULT NULL COMMENT '优先级',
+                                     `policy_description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '策略描述',
                                      `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',
                                      `update_time` bigint NULL DEFAULT NULL COMMENT '更新时间',
                                      PRIMARY KEY (`id`) USING BTREE
@@ -149,6 +208,10 @@ CREATE TABLE `perm_data_policy`  (
 -- ----------------------------
 -- Records of perm_data_policy
 -- ----------------------------
+INSERT INTO `perm_data_policy` VALUES (1747042048595, 'DEPT_AND_CHILDREN', '部门及子部门', 2, '@{permissionService.getOrgIdsWithChildren(#current_user.orgId)}', 'sys_order,sys_customer', 50, '查看用户所在部门及其所有子部门数据', 1747042048595, 1747100149561);
+INSERT INTO `perm_data_policy` VALUES (1747099204826, 'DEPT_DATA_ONLY', '当前部门数据', 1, 'org_id = #{current_user.orgId}', 'sys_users,sys_roles', 50, '仅查看用户所在部门数据', 1747099204826, 1747099204826);
+INSERT INTO `perm_data_policy` VALUES (1747099283110, 'ALL_DATA', '全部数据', 1, '1=1', '*', 10, '查看所有租户数据', 1747099283110, 1747099283110);
+INSERT INTO `perm_data_policy` VALUES (1747099335046, 'PERSONAL_DATA', '个人数据', 1, 'create_by = #{current_user.id}', 'sys_task', 90, '仅查看自己创建的数据', 1747099335046, 1747099335046);
 
 -- ----------------------------
 -- Table structure for perm_rel_policy_binding
@@ -166,6 +229,7 @@ CREATE TABLE `perm_rel_policy_binding`  (
 -- ----------------------------
 -- Records of perm_rel_policy_binding
 -- ----------------------------
+INSERT INTO `perm_rel_policy_binding` VALUES (1122613629653487616, 1747099335046, 1, 1122600087839707136, 1747818412093);
 
 -- ----------------------------
 -- Table structure for prom_doc_section_template
@@ -719,6 +783,12 @@ CREATE TABLE `rel_roles_perm`  (
 -- ----------------------------
 -- Records of rel_roles_perm
 -- ----------------------------
+INSERT INTO `rel_roles_perm` VALUES (1120404316679704576, 1120042913351471104, 1747099406313, 1747291670831);
+INSERT INTO `rel_roles_perm` VALUES (1120404316780367872, 1120042913351471104, 1747099547464, 1747291670832);
+INSERT INTO `rel_roles_perm` VALUES (1122613629611544576, 1122600087839707136, 1747099406313, 1747818412080);
+INSERT INTO `rel_roles_perm` VALUES (1122613629615738880, 1122600087839707136, 1747099547464, 1747818412080);
+INSERT INTO `rel_roles_perm` VALUES (1122613629619933184, 1122600087839707136, 1747099436905, 1747818412083);
+INSERT INTO `rel_roles_perm` VALUES (1124437214667870208, 1124437048221110272, 1124436051818057728, 1748253188641);
 
 -- ----------------------------
 -- Table structure for rel_user_roles
@@ -726,7 +796,6 @@ CREATE TABLE `rel_roles_perm`  (
 DROP TABLE IF EXISTS `rel_user_roles`;
 CREATE TABLE `rel_user_roles`  (
                                    `id` bigint NOT NULL COMMENT '主键id',
-                                   `tenant_id` bigint NOT NULL COMMENT '所属租户ID',
                                    `user_id` bigint NULL DEFAULT NULL COMMENT '用户id',
                                    `role_id` bigint NULL DEFAULT NULL COMMENT '角色id',
                                    `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',
@@ -736,6 +805,8 @@ CREATE TABLE `rel_user_roles`  (
 -- ----------------------------
 -- Records of rel_user_roles
 -- ----------------------------
+INSERT INTO `rel_user_roles` VALUES (1124672838574411776, 1107747939570290688, 1124437048221110272, 1748309365756);
+INSERT INTO `rel_user_roles` VALUES (1124767197986689024, 1107748679651037184, 1120042788315074560, 1748331862791);
 
 -- ----------------------------
 -- Table structure for sys_operation_log
@@ -776,6 +847,15 @@ CREATE TABLE `sys_roles`  (
 -- ----------------------------
 -- Records of sys_roles
 -- ----------------------------
+INSERT INTO `sys_roles` VALUES (1120042788315074560, 'ROLE_SUPER_ADMIN', '系统管理员', 1, '系统最高权限角色', 1747205475753, 1747205475753);
+INSERT INTO `sys_roles` VALUES (1120042913351471104, 'TENANT_ADMIN_1', '专利管理员', 2, '负责专利申请、管理的角色', 1747205505564, 1747205505564);
+INSERT INTO `sys_roles` VALUES (1120043030355775488, 'AGENT_USER_2', '产品经理', 3, '负责产品规划和设计的角色', 1747205533461, 1747205533461);
+INSERT INTO `sys_roles` VALUES (1120043140628221952, 'ADMIN_ROLE_3', '研发工程师', 1, '技术研发和支持角色', 1747205559752, 1747205559752);
+INSERT INTO `sys_roles` VALUES (1120043379867127808, 'TENANT_ADMIN_4', '审批人员', 2, '负责审批流程的角色', 1747205616791, 1747205616791);
+INSERT INTO `sys_roles` VALUES (1122599983909048320, 'TEST01', '测试角色', 1, '测试角色', 1747815158693, 1747815158693);
+INSERT INTO `sys_roles` VALUES (1122600087839707136, 'TEST02', '测试角色2', 2, '测试角色', 1747815183473, 1747815183473);
+INSERT INTO `sys_roles` VALUES (1122600503549759488, 'TEST04', '测试角色3', 1, '', 1747815282585, 1747815282585);
+INSERT INTO `sys_roles` VALUES (1124437048221110272, 'PROMPT_OPERATOR', '提示词工程操作员', 1, '编辑提示词工程人员', 1748253148956, 1748253148956);
 
 -- ----------------------------
 -- Table structure for sys_users
@@ -803,12 +883,29 @@ CREATE TABLE `sys_users`  (
 -- ----------------------------
 -- Records of sys_users
 -- ----------------------------
-INSERT INTO `sys_users` VALUES (1107747939570290688, '软糖001', '{bcrypt}$2a$10$SZgOEV4jmJt7TD91AIctbOz1QqjLdlNfUloABlp3lKQ96iRzszLY2', NULL, NULL, NULL, '软糖撰写一组', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1744274155294, NULL);
+INSERT INTO `sys_users` VALUES (1107747939570290688, '软糖001', '{bcrypt}$2a$10$SZgOEV4jmJt7TD91AIctbOz1QqjLdlNfUloABlp3lKQ96iRzszLY2', 1121780694490681344, 1124437918044262400, NULL, '软糖撰写一组', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1744274155294, NULL);
 INSERT INTO `sys_users` VALUES (1107748349882273792, '软糖002', '{bcrypt}$2a$10$kdlf1Gt2XXgHzIqTT2kNUOAXWc66oel28vqBDkVtb0CFTGfG78IsW', NULL, NULL, NULL, '软糖撰写二组', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1744274253121, NULL);
 INSERT INTO `sys_users` VALUES (1107748379565363200, '软糖003', '{bcrypt}$2a$10$FdoERKuC8nPTMzjOND94MebPiscCox4sa.r3CRCfMVqyTJtHDtDvm', NULL, NULL, NULL, '软糖撰写三组', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1744274260206, NULL);
 INSERT INTO `sys_users` VALUES (1107748418060685312, '软糖004', '{bcrypt}$2a$10$FCH6qixDpHWGg/hnTUF7Ou9tBECP6kqw4WdFkvTpzAEamRMRsgLCK', NULL, NULL, NULL, '软糖撰写四组', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1744274269386, NULL);
 INSERT INTO `sys_users` VALUES (1107748596108890112, '软糖答审组', '{bcrypt}$2a$10$eQ9Njld4HihtwoCKT6lfWeLjc4YCVakq1cJzFzAUikO1iFhum0XC.', NULL, NULL, NULL, '软糖答审组', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1744274311836, NULL);
-INSERT INTO `sys_users` VALUES (1107748679651037184, 'admin', '{bcrypt}$2a$10$LcRTd/GQIX5C2f2Psf9w6OFYg4QFohIwSLbhtYTLwkmzBD8GY2n/2', NULL, NULL, NULL, '软糖管理员', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1744274331754, NULL);
+INSERT INTO `sys_users` VALUES (1107748679651037184, 'admin', '{bcrypt}$2a$10$LcRTd/GQIX5C2f2Psf9w6OFYg4QFohIwSLbhtYTLwkmzBD8GY2n/2', 1121780694490681344, 1123251917213011968, NULL, '软糖管理员', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1744274331754, NULL);
+INSERT INTO `sys_users` VALUES (1122218126545653760, '测试平台用户001', '{bcrypt}$2a$10$H2zhd.gPuRItt0eFUe1/su9avlfooaIN44lIJ4PC7M/ux29oRwsNS', NULL, NULL, NULL, '用户RJ72G98I', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724116751, NULL);
+INSERT INTO `sys_users` VALUES (1122218160196554752, '测试平台用户002', '{bcrypt}$2a$10$obNeiLnijZMJQrCOvWm7tOjGpmeF5OB8H92GLVbzDis1dhqK1kGI6', NULL, NULL, NULL, '用户1179TSZ6', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724124775, NULL);
+INSERT INTO `sys_users` VALUES (1122218186192850944, '测试平台用户003', '{bcrypt}$2a$10$/vdUyVM.hLUn6IYv0mSjz.QTgzxPoVaoTrJuR4OXPHk8nzkYdCTL.', NULL, NULL, NULL, '用户E3QZQBBQ', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724130974, NULL);
+INSERT INTO `sys_users` VALUES (1122218206858186752, '测试平台用户004', '{bcrypt}$2a$10$f0gAKWBBb/YNSlt.NREUi.KoK3jZ5X6EFsLCtyqpsBxFgu7iSTnWK', NULL, NULL, NULL, '用户Y5N8COKR', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724135900, NULL);
+INSERT INTO `sys_users` VALUES (1122218226139402240, '测试平台用户005', '{bcrypt}$2a$10$dz8IJyZ3nxOQgfD.ommjKu1iVbvNYWCBq/qtzDUK7Js1FhQTeW/gS', NULL, NULL, NULL, '用户Z7FWKKDH', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724140499, NULL);
+INSERT INTO `sys_users` VALUES (1122218319374585856, '测试企业用户001', '{bcrypt}$2a$10$pB14o7JRrWLI/C.bYWgxTuLqyP18U5CCZIksJPuQhdrXxm8IgfIXq', NULL, NULL, NULL, '用户76CDNZ2C', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724162727, NULL);
+INSERT INTO `sys_users` VALUES (1122218337007439872, '测试企业用户002', '{bcrypt}$2a$10$/hyP7u75DftDZezaERt1Wu80SUaMPkAjIH7.PXQPGDc/k61F7mVn2', NULL, NULL, NULL, '用户BLE4J2QF', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724166931, NULL);
+INSERT INTO `sys_users` VALUES (1122218356108300288, '测试企业用户003', '{bcrypt}$2a$10$2iENW8/GjyLgqyplltv3W../bLgFONyVeQLOVN42UInXt9LUCXUjq', NULL, NULL, NULL, '用户GLEDSARS', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724171484, NULL);
+INSERT INTO `sys_users` VALUES (1122218392854597632, '测试企业用户004', '{bcrypt}$2a$10$W0Ad0GEWe814AroZNV5YIuvHBVFGdXgRpsX1pf9gLfJXfxNUT97li', NULL, NULL, NULL, '用户XTJXQWUN', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724180246, NULL);
+INSERT INTO `sys_users` VALUES (1122218416208482304, '测试企业用户005', '{bcrypt}$2a$10$BErJpevLXebMILnsB4cR0.F9aaoaBFLnLKLfHkxOlxvBJhp4CRT82', NULL, NULL, NULL, '用户AZ2WYA1F', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724185814, NULL);
+INSERT INTO `sys_users` VALUES (1122218430431367168, '测试企业用户006', '{bcrypt}$2a$10$Ilv/c/d0ocQcX1P.H5GSxezf6h6pSPZ0.qzNRpL4NhW6lcPPxvJU.', NULL, NULL, NULL, '用户2Y52MWL6', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724189203, NULL);
+INSERT INTO `sys_users` VALUES (1122218474136014848, '测试代理所用户001', '{bcrypt}$2a$10$bCj3NdBTgaC0R3ANHVuTkep5E6gesUfZUJsuUwsYS2UNM8hbo1mZu', NULL, NULL, NULL, '用户1ZS7MBRV', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724199624, NULL);
+INSERT INTO `sys_users` VALUES (1122218491424935936, '测试代理所用户002', '{bcrypt}$2a$10$Jot5jLUMBZMJXVDqDk2VkuyW/qmXznDlk.CS/UbTOG5cSDc/d64Ly', NULL, NULL, NULL, '用户HKO68S3N', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724203747, NULL);
+INSERT INTO `sys_users` VALUES (1122218508470587392, '测试代理所用户003', '{bcrypt}$2a$10$7f.Z7RxcnaM954lvdMb1M.1DmxE9t.ysUFrio7ls4gY6bW2166o8S', NULL, NULL, NULL, '用户UHPDUCZN', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724207809, NULL);
+INSERT INTO `sys_users` VALUES (1122218524031455232, '测试代理所用户004', '{bcrypt}$2a$10$m7nnrYqPVy2fgewqeN3jm.y3Q0XwBee9hiPUhEjdVcyS88fDTjnZG', NULL, NULL, NULL, '用户0YHGRSL6', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724211520, NULL);
+INSERT INTO `sys_users` VALUES (1122218541165187072, '测试代理所用户005', '{bcrypt}$2a$10$adRkl4JjLqdPYjfDHeLy4.ycEhnI/4YusX2Hsqvv.bmDY3E5LpgLa', NULL, NULL, NULL, '用户QZ9W0DS9', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724215606, NULL);
+INSERT INTO `sys_users` VALUES (1122218560823889920, '测试代理所用户006', '{bcrypt}$2a$10$mSZD90qrjMaWYVfWA69mKO4yFFRQfjuJ5U6mTgzLWWT2cVO3AA58m', NULL, NULL, NULL, '用户154QLYB0', NULL, '123@163.com', NULL, NULL, NULL, NULL, 1747724220292, NULL);
 
 -- ----------------------------
 -- Table structure for tenant
@@ -834,6 +931,12 @@ CREATE TABLE `tenant`  (
 -- ----------------------------
 -- Records of tenant
 -- ----------------------------
+INSERT INTO `tenant` VALUES (1121780694490681344, 'PLATFORM', '超管平台', 1, '13800138001', 'admin@platform', '测试平台租户', '陕西省西安市雁塔区旺座曲江L座31层', 3, 2534947200000, 1107748679651037184, 1747619824873, 1747985933914);
+INSERT INTO `tenant` VALUES (1121781398517190656, 'TENANT20230001', '腾云科技有限公司', 2, '13800138002', 'admin@tenant20230001', '测试企业租户', '北京市海淀区中关村南大街10号企业总部', 3, 2536538118000, 1107747939570290688, 1747619992728, 1747619992728);
+INSERT INTO `tenant` VALUES (1121781802789376000, 'TENANT20230003', '星辰数字科技集团', 2, '13800138003', 'admin@tenant20230003', '测试企业租户', '深圳市南山区科技园路1001号', 3, 2536538118000, 1107747939570290688, 1747620089114, 1747620089114);
+INSERT INTO `tenant` VALUES (1121782253538643968, 'TENANT20230004', '蓝海咨询代理所', 3, '13800138004', 'admin@tenant20230004', '测试代理所租户', '上海市浦东新区世纪大道200号', 3, 2536538118000, 1107747939570290688, 1747620196581, 1747620196581);
+INSERT INTO `tenant` VALUES (1121782797577621504, 'TENANT20230005', '绿松财务代理所', 3, '13800138005', 'admin@tenant20230005', '测试代理所租户', '广州市天河区珠江新城101号', 3, 2536538118000, 1107747939570290688, 1747620326290, 1747620326290);
+INSERT INTO `tenant` VALUES (1121783083067117568, 'TENANTTEST', '测试更新企业租户页面', 2, '13800138006', 'admin@tenant20230006', '测试更新企业租户', '广州市天河区珠江新城101号', 3, 2536538118000, 1107747939570290688, 1747620394355, 1747897547153);
 
 -- ----------------------------
 -- Table structure for tenant_rel_template_role
@@ -848,11 +951,15 @@ CREATE TABLE `tenant_rel_template_role`  (
                                              `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',
                                              `update_time` bigint NULL DEFAULT NULL COMMENT '更新时间',
                                              PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '模板角色关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '模板角色关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tenant_rel_template_role
 -- ----------------------------
+-- INSERT INTO `tenant_rel_template_role` VALUES (1123299736586162176, 1123255061951156224, 1122600503549759488, 0, '{\"roleId\": 1122600503549759488, \"permIds\": [], \"roleCode\": \"TEST04\", \"roleName\": \"测试角色3\", \"dataPolicyIds\": []}', 1747981992733, 1747981992733);
+INSERT INTO `tenant_rel_template_role` VALUES (1123299736640688128, 1123255061951156224, 1120043140628221952, 1, NULL, 1747981992746, 1747981992746);
+INSERT INTO `tenant_rel_template_role` VALUES (1123323214576095232, 1123255061951156224, 1120042788315074560, 1, NULL, 1747987590321, 1747987590321);
+INSERT INTO `tenant_rel_template_role` VALUES (1124437380040888320, 1123255061951156224, 1124437048221110272, 1, NULL, 1748253228068, 1748253228068);
 
 -- ----------------------------
 -- Table structure for tenant_rel_tenant_template
@@ -867,11 +974,13 @@ CREATE TABLE `tenant_rel_tenant_template`  (
                                                `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',
                                                `update_time` bigint NULL DEFAULT NULL COMMENT '更新时间',
                                                PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '租户模板关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '租户模板关联表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tenant_rel_tenant_template
 -- ----------------------------
+INSERT INTO `tenant_rel_tenant_template` VALUES (1123302334294790144, 1121780694490681344, 1123255061951156224, 1, 1747982590000, 1747982612075, 1747982612075);
+INSERT INTO `tenant_rel_tenant_template` VALUES (1124783923419811840, 1121783083067117568, 1122857831419219968, 1, 1748335847536, 1748335850445, 1748335850445);
 
 -- ----------------------------
 -- Table structure for tenant_template
@@ -881,16 +990,22 @@ CREATE TABLE `tenant_template`  (
                                     `id` bigint NOT NULL COMMENT '主键id',
                                     `template_code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模板编码(如: EDU_TEMPLATE)',
                                     `template_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '模板名称(如: 教育行业模板)',
+                                    `template_type` tinyint NOT NULL COMMENT '模板类型（1：平台租户模板、2：企业租户模板、3：代理所租户模板）',
                                     `industry_type` tinyint NOT NULL COMMENT '行业类型(0:教育 1:医疗 2:金融)',
                                     `data_isolation_mode` tinyint NULL DEFAULT NULL COMMENT '数据隔离模式(继承租户配置)',
-                                    `is_system` tinyint NOT NULL COMMENT '是否系统内置模板',
+                                    `is_system` tinyint NOT NULL COMMENT '是否系统内置模板(0：否、1：是)',
+                                    `template_desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '租户模板描述',
                                     `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',
                                     `update_time` bigint NULL DEFAULT NULL COMMENT '更新时间',
                                     PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '租户模板表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '租户模板表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of tenant_template
 -- ----------------------------
+INSERT INTO `tenant_template` VALUES (1120781604541829120, 'EDU_STD_V1', '标准教育模板', 2, 0, 0, 1, '适用于K-12教育机构的标准配置模板', 1747381623267, 1747381623267);
+INSERT INTO `tenant_template` VALUES (1120782032490860544, 'MED_CLINIC_BAS_1', '基础医疗诊所模板', 2, 1, 0, 1, '为小型医疗诊所提供的基础功能和权限', 1747381725300, 1747381725300);
+INSERT INTO `tenant_template` VALUES (1120782841727291392, 'FIN_CORP_ADV_2', '高级金融企业模板', 2, 3, 0, 1, '大型金融机构使用的高级功能和权限套件', 1747381918237, 1747898890287);
+INSERT INTO `tenant_template` VALUES (1123255061951156224, 'ROOT_TEST', '平台高级租户测试模板', 1, 0, NULL, 1, '', 1747971341469, 1748335918827);
 
 SET FOREIGN_KEY_CHECKS = 1;

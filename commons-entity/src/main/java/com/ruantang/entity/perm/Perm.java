@@ -22,6 +22,11 @@ public class Perm {
      * 权限标识(如order:view)
      */
     private String permsCode;
+
+    /**
+     * 权限类型（API BUTTON）
+     */
+    private String permType;
     
     /**
      * 权限名称

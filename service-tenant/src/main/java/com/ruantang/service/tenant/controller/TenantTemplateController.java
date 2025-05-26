@@ -3,6 +3,8 @@ package com.ruantang.service.tenant.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ruantang.commons.api.ApiResult;
 import com.ruantang.service.tenant.model.dto.TenantTemplateDTO;
+import com.ruantang.service.tenant.model.dto.TemplateRoleDTO;
+import com.ruantang.service.tenant.model.dto.SysRolesDTO;
 import com.ruantang.service.tenant.model.request.TemplateCreateRequest;
 import com.ruantang.service.tenant.model.request.TemplateQueryRequest;
 import com.ruantang.service.tenant.model.request.TemplateRoleBindRequest;
@@ -14,6 +16,8 @@ import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 租户模板控制器
@@ -67,5 +71,21 @@ public class TenantTemplateController {
     public ApiResult<Boolean> bindTemplateRoles(
             @Validated @RequestBody TemplateRoleBindRequest request) {
         return templateService.bindTemplateRoles(request);
+    }
+    
+    @GetMapping("/{id}/roles")
+    @ApiOperation("根据模板ID查询绑定的角色列表")
+    public ApiResult<List<TemplateRoleDTO>> getTemplateRoles(
+            @ApiParam(value = "模板ID", required = true)
+            @PathVariable("id") Long id) {
+        return templateService.getTemplateRoles(id);
+    }
+    
+    @GetMapping("/roles/check/{roleId}")
+    @ApiOperation("检查角色是否绑定到企业模板")
+    public ApiResult<Boolean> checkRoleBindingToTemplate(
+            @ApiParam(value = "角色ID", required = true)
+            @PathVariable("roleId") Long roleId) {
+        return templateService.checkRoleBindingToTemplate(roleId);
     }
 } 

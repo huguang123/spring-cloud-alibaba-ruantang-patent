@@ -26,6 +26,7 @@ import com.ruantang.service.permissions.service.PermDataPolicyService;
 import com.ruantang.service.permissions.service.PermService;
 import com.ruantang.service.permissions.service.SysRoleService;
 import com.ruantang.service.permissions.util.RoleUtil;
+import com.ruantang.service.permissions.client.TenantTemplateFeignClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final PermDataPolicyService policyService;
     private final ConfigPermTemplateService templateService;
     private final RelUserRolesMapper relUserRolesMapper;
+    private final TenantTemplateFeignClient tenantTemplateFeignClient;
 
     @Override
     public ApiResult<Page<SysRolesDTO>> queryRolePage(RoleQueryRequest request) {
@@ -140,6 +142,16 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (role == null) {
             return ApiResult.failed("角色不存在");
         }
+
+        // 检查角色是否绑定到企业模板
+        ApiResult<Boolean> bindingResult = tenantTemplateFeignClient.checkRoleBindingToTemplate(id);
+        if (bindingResult == null || bindingResult.getCode() != 200) {
+            // Feign调用失败，记录日志或抛出异常，这里简单返回错误信息
+            return ApiResult.failed("检查角色绑定状态失败，请稍后再试");
+        }
+        if (Boolean.TRUE.equals(bindingResult.getData())) {
+            return ApiResult.failed("角色已绑定到企业模板，请先解绑后再删除");
+        }
         
         // 删除角色的权限关联
         rolesPermRepository.deleteByRoleId(id);
@@ -147,6 +159,9 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 删除角色的数据权限策略绑定
         policyBindingRepository.unbindAllPoliciesFromRole(id);
         
+        // 删除用户角色关联
+        relUserRolesMapper.deleteByRoleId(id);
+
         // 删除角色
         boolean success = rolesRepository.deleteRoleById(id);
         return ApiResult.success(success);

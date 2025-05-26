@@ -68,4 +68,12 @@ public interface PermRepository {
      * @return 操作权限列表
      */
     List<Perm> getPermsByRoleIds(List<Long> roleIds);
+    
+    /**
+     * 根据权限ID列表查询操作权限列表
+     * 
+     * @param permIds 权限ID列表
+     * @return 操作权限列表
+     */
+    List<Perm> getPermsByIds(List<Long> permIds);
 } 

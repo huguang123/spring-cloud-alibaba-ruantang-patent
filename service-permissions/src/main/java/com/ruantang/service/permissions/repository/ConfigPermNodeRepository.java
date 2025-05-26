@@ -91,4 +91,13 @@ public class ConfigPermNodeRepository {
         queryWrapper.eq(ConfigPermNode::getModuleId, moduleId);
         return nodeMapper.delete(queryWrapper) >= 0;
     }
+    
+    /**
+     * 检查权限是否绑定到配置权限节点
+     */
+    public boolean checkPermBindingToNode(Long permId) {
+        LambdaQueryWrapper<ConfigPermNode> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ConfigPermNode::getPermId, permId);
+        return nodeMapper.selectCount(queryWrapper) > 0;
+    }
 }

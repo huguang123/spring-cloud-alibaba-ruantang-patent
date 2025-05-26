@@ -34,11 +34,6 @@ public class ConfigPermNode {
     private Integer nodeType;
     
     /**
-     * 数据权限类型（当node_type=3时有效，1=查看 2=编辑）
-     */
-    private Integer dataScope;
-    
-    /**
      * 绑定权限类型（0:操作权限 1:数据权限）
      */
     private Integer permType;

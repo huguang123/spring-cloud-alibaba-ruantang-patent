@@ -60,4 +60,13 @@ public class RelRolesPermRepository {
         rolesPermMapper.delete(queryWrapper);
         return true;
     }
+    
+    /**
+     * 检查权限是否绑定到任何角色
+     */
+    public boolean checkPermBindingToRole(Long permId) {
+        LambdaQueryWrapper<RelRolesPerm> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(RelRolesPerm::getPermsId, permId);
+        return rolesPermMapper.selectCount(queryWrapper) > 0;
+    }
 } 

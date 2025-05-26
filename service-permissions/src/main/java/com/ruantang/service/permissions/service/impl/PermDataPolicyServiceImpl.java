@@ -71,9 +71,6 @@ public class PermDataPolicyServiceImpl implements PermDataPolicyService {
         policy.setCreateTime(System.currentTimeMillis());
         policy.setUpdateTime(System.currentTimeMillis());
         
-        // 生成ID (这里使用时间戳，实际应用中可以使用雪花算法等)
-//        policy.setId(System.currentTimeMillis());
-        
         boolean success = policyRepository.savePolicy(policy);
         if (!success) {
             return ApiResult.failed("创建数据权限策略失败");

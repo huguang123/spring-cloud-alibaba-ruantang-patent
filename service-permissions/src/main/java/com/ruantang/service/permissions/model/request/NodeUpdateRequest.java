@@ -22,9 +22,6 @@ public class NodeUpdateRequest {
     @ApiModelProperty(value = "节点类型(1=菜单项 2=操作按钮 3=数据字段)")
     private Integer nodeType;
     
-    @ApiModelProperty(value = "数据权限类型(当nodeType=3时有效，1=查看 2=编辑)")
-    private Integer dataScope;
-    
     @ApiModelProperty(value = "绑定权限类型(0:操作权限 1:数据权限)")
     private Integer permType;
     
