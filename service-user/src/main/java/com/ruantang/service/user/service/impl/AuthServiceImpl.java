@@ -83,7 +83,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
     
     @Resource
     private PermDataPolicyService policyService;
-    
+
     @Resource
     private TenantFeignClient tenantFeignClient;
 
@@ -139,16 +139,16 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
             TenantRoleVerifyRequest verifyRequest = new TenantRoleVerifyRequest();
             verifyRequest.setTenantId(tenantId);
             verifyRequest.setRoleIds(roleIds);
-            
+
             ApiResult<List<TenantRolePermissionDTO>> verifyResult = tenantFeignClient.verifyTenantRolePermissions(verifyRequest);
             log.info("verifyResult:{}",verifyResult);
-            
+
             if (verifyResult != null && verifyResult.getCode() == 200 && verifyResult.getData() != null) {
                 List<TenantRolePermissionDTO> rolePermissions = verifyResult.getData();
-                
+
                 // 分类角色：继承权限变更的角色和不继承的角色
                 List<Long> inheritRoleIds = new ArrayList<>();
-                
+
                 for (TenantRolePermissionDTO rolePermission : rolePermissions) {
                     // 是否继承权限变更(1:继承 0:不继承)
                     if (rolePermission.getIsInherit() != null && rolePermission.getIsInherit() == 1) {
@@ -160,18 +160,18 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
                         if (!StringUtils.isEmpty(permissionSnapshot)) {
                             try {
                                 JSONObject snapshot = JSON.parseObject(permissionSnapshot);
-                                
+
                                 // 获取权限ID列表
                                 List<Long> permIds = snapshot.getJSONArray("permIds").toJavaList(Long.class);
                                 if (!CollectionUtils.isEmpty(permIds)) {
                                     // 根据权限ID获取按钮和API权限
                                     List<String> roleButtons = permService.getButtonsByPermIds(permIds);
                                     List<String> roleApis = permService.getApisByPermIds(permIds);
-                                    
+
                                     buttons.addAll(roleButtons);
                                     apis.addAll(roleApis);
                                 }
-                                
+
                                 // 获取数据策略ID列表
                                 List<Long> dataPolicyIds = snapshot.getJSONArray("dataPolicyIds").toJavaList(Long.class);
                                 if (!CollectionUtils.isEmpty(dataPolicyIds)) {
@@ -190,7 +190,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
                         }
                     }
                 }
-                
+
                 // 处理继承权限变更的角色
                 if (!inheritRoleIds.isEmpty()) {
                     log.info("inheritRoleIds:{}",inheritRoleIds);
@@ -198,10 +198,10 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
                     List<String> inheritButtons = permService.getButtonsByRoleIds(inheritRoleIds);
                     List<String> inheritApis = permService.getApisByRoleIds(inheritRoleIds);
                     log.info("inheritApis:{}",inheritApis);
-                    
+
                     buttons.addAll(inheritButtons);
                     apis.addAll(inheritApis);
-                    
+
                     // 获取这些角色的数据权限策略
                     List<PermDataPolicyDTO> inheritPolicies = policyService.getPoliciesByRoleIds(inheritRoleIds);
                     if (!CollectionUtils.isEmpty(inheritPolicies)) {
@@ -215,7 +215,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
                 List<String> allButtons = permService.getUserPermButtons(sysUsers.getId());
                 List<String> allApis = permService.getUserApiPerms(sysUsers.getId());
                 Map<String, PermDataPolicyDTO> allPolicies = policyService.getUserDataPolicies(sysUsers.getId());
-                
+
                 buttons.addAll(allButtons);
                 apis.addAll(allApis);
                 dataPolicies.putAll(allPolicies);
@@ -225,7 +225,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
             List<String> allButtons = permService.getUserPermButtons(sysUsers.getId());
             List<String> allApis = permService.getUserApiPerms(sysUsers.getId());
             Map<String, PermDataPolicyDTO> allPolicies = policyService.getUserDataPolicies(sysUsers.getId());
-            
+
             buttons.addAll(allButtons);
             apis.addAll(allApis);
             dataPolicies.putAll(allPolicies);
@@ -238,12 +238,12 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         authMap.put("apis", new ArrayList<>(apis));
         authMap.put("buttons", new ArrayList<>(buttons));
         authMap.put("data_perms", dataPolicies);
-        
+
         // 添加用户平台类型信息，用于网关验证防止跨平台访问
         // 默认为未知类型
         Integer userPlatformType = 0;
         String userPlatformTypeName = "未知平台类型";
-        
+
         // 获取租户类型信息
         if (tenantId != null) {
             try {
@@ -264,7 +264,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
             userPlatformType = 0;
             userPlatformTypeName = "未关联租户";
         }
-        
+
         // 只存储用户平台类型信息，简化网关判断逻辑
         authMap.put("user_platform_type", userPlatformType);
         authMap.put("user_platform_type_name", userPlatformTypeName);

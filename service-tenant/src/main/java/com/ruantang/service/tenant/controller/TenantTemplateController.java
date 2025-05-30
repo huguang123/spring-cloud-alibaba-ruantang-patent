@@ -72,7 +72,7 @@ public class TenantTemplateController {
             @Validated @RequestBody TemplateRoleBindRequest request) {
         return templateService.bindTemplateRoles(request);
     }
-    
+
     @GetMapping("/{id}/roles")
     @ApiOperation("根据模板ID查询绑定的角色列表")
     public ApiResult<List<TemplateRoleDTO>> getTemplateRoles(
@@ -80,7 +80,7 @@ public class TenantTemplateController {
             @PathVariable("id") Long id) {
         return templateService.getTemplateRoles(id);
     }
-    
+
     @GetMapping("/roles/check/{roleId}")
     @ApiOperation("检查角色是否绑定到企业模板")
     public ApiResult<Boolean> checkRoleBindingToTemplate(
@@ -88,4 +88,4 @@ public class TenantTemplateController {
             @PathVariable("roleId") Long roleId) {
         return templateService.checkRoleBindingToTemplate(roleId);
     }
-} 
+}

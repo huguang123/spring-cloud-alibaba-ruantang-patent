@@ -64,7 +64,7 @@ public interface TenantTemplateService {
      * @return 绑定结果
      */
     ApiResult<Boolean> bindTemplateRoles(TemplateRoleBindRequest request);
-    
+
     /**
      * 根据模板ID查询绑定的角色列表
      *
@@ -72,12 +72,12 @@ public interface TenantTemplateService {
      * @return 角色列表
      */
     ApiResult<List<TemplateRoleDTO>> getTemplateRoles(Long id);
-    
+
     /**
      * 检查角色是否绑定到企业模板
-     * 
+     *
      * @param roleId 角色ID
      * @return 检查结果
      */
     ApiResult<Boolean> checkRoleBindingToTemplate(Long roleId);
-} 
+}

@@ -176,7 +176,7 @@ public class TenantTemplateServiceImpl implements TenantTemplateService {
         if (isBoundToTenant) {
             return ApiResult.failed("模板已绑定到租户，请先解绑后再删除");
         }
-        
+
         // 删除模板关联的角色
         templateRoleRepository.deleteByTemplateId(id);
         
@@ -296,16 +296,16 @@ public class TenantTemplateServiceImpl implements TenantTemplateService {
         if (template == null) {
             return ApiResult.failed("模板不存在");
         }
-        
+
         // 获取模板绑定的角色关联
         List<TenantRelTemplateRole> roleRelations = templateRoleRepository.listRolesByTemplateId(id);
         if (roleRelations == null || roleRelations.isEmpty()) {
             return ApiResult.success(new ArrayList<>());
         }
-        
+
         // 构建返回结果
         List<TemplateRoleDTO> templateRoleDTOs = new ArrayList<>();
-        
+
         for (TenantRelTemplateRole relation : roleRelations) {
             TemplateRoleDTO templateRoleDTO = new TemplateRoleDTO();
             templateRoleDTO.setId(relation.getId());
@@ -313,19 +313,19 @@ public class TenantTemplateServiceImpl implements TenantTemplateService {
             templateRoleDTO.setRoleId(relation.getRoleId());
             templateRoleDTO.setIsInherit(relation.getIsInherit());
 //            templateRoleDTO.setPermissionSnapshot(relation.getPermissionSnapshot());
-            
+
             // 查询角色信息
             ApiResult<SysRolesDTO> roleResult = roleFeignClient.getRoleById(relation.getRoleId());
             if (roleResult != null && roleResult.getCode() == 200 && roleResult.getData() != null) {
                 templateRoleDTO.setRole(roleResult.getData());
             }
-            
+
             templateRoleDTOs.add(templateRoleDTO);
         }
-        
+
         return ApiResult.success(templateRoleDTOs);
     }
-    
+
     @Override
     public ApiResult<Boolean> checkRoleBindingToTemplate(Long roleId) {
         // 检查角色是否绑定到任何模板

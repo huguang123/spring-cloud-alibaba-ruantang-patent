@@ -32,10 +32,10 @@ import java.util.Map;
 public class GatewayJwtFilter implements GlobalFilter, Ordered {
 
     private static final Logger log = LoggerFactory.getLogger(GatewayJwtFilter.class);
-    
+
     private static final String SUPER_ADMIN_ROLE = "ROLE_SUPER_ADMIN"; // 超级管理员角色标识
     private static final String ADMIN_ROLE_PREFIX = "ROLE_ADMIN"; // 管理员角色前缀
-    
+
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Autowired
@@ -83,19 +83,19 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
             if (validToken == null) {
                 return writeUnauthResponse(exchange, "凭证已过期");
             }
-            
+
             validToken = validToken.replace("\"", "");
             if (!validToken.equals(token)) {
                 return writeUnauthResponse(exchange, "凭证无效");
             }
-            
+
             // 5. 获取用户权限信息
             String redisPermKey = "AUTH:PERMISSION:" + username;
             String permJson = redisTemplate.opsForValue().get(redisPermKey);
             if (permJson == null) {
                 return writeUnauthResponse(exchange, "无法获取权限信息");
             }
-            
+
             Map<String, Object> permMap;
             try {
                 log.info("权限字符串：{}",permJson);
@@ -105,14 +105,14 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
                 log.error("解析权限数据异常: {}", e.getMessage());
                 return writeUnauthResponse(exchange, "权限数据解析失败");
             }
-            
+
             // 6. 验证是否是超级平台管理员
             List<String> roles = (List<String>) permMap.get("roles");
             if (roles != null && roles.contains(SUPER_ADMIN_ROLE)) {
                 log.info("超级平台管理员权限验证通过: {}", username);
                 return passRequest(exchange, chain, username);
             }
-            
+
             // 7. TODO: 检查是否跨系统接口访问
             // 这部分需要在nginx配置完成后实现
             // 思路：从请求头获取X-Platform-Type，与用户的user_platform_type进行比对
@@ -121,7 +121,7 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
             // if (!Objects.equals(requestPlatformType, userPlatformType)) {
             //     return writeUnauthResponse(exchange, "不允许跨平台访问");
             // }
-            
+
             // 8. 管理员角色验证
             boolean isAdmin = false;
             if (roles != null) {
@@ -132,18 +132,18 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
                     }
                 }
             }
-            
+
             if (isAdmin) {
                 log.info("管理员角色验证通过: {}", username);
                 return passRequest(exchange, chain, username);
             }
-            
+
             // 9. API权限匹配检查
             List<String> apis = (List<String>) permMap.get("apis");
             if (apis == null || apis.isEmpty()) {
                 return writeUnauthResponse(exchange, "无API访问权限");
             }
-            
+
             if (!hasApiPermission(exchange, path, apis)) {
                 return writeUnauthResponse(exchange, "无访问权限");
             }
@@ -156,7 +156,7 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
             return writeUnauthResponse(exchange, "凭证验证失败");
         }
     }
-    
+
     /**
      * 检查用户是否有API访问权限
      * 权限格式为"METHOD:PATH"，例如"GET:/api/user/info"
@@ -169,7 +169,7 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
     private boolean hasApiPermission(ServerWebExchange exchange, String requestPath, List<String> permittedApis) {
         // 获取请求方法
         String requestMethod = exchange.getRequest().getMethod().toString();
-        
+
         for (String api : permittedApis) {
             // 分离方法和路径
             String[] parts = api.split(":", 2);
@@ -177,12 +177,12 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
                 log.warn("权限格式错误: {}", api);
                 continue;
             }
-            
+
             String apiMethod = parts[0];
             String apiPath = parts[1];
-            
+
             // 方法匹配（支持*通配符）和路径匹配
-            if ((apiMethod.equals("*") || apiMethod.equalsIgnoreCase(requestMethod)) && 
+            if ((apiMethod.equals("*") || apiMethod.equalsIgnoreCase(requestMethod)) &&
                  pathMatcher.match(apiPath, requestPath)) {
                 log.debug("API权限匹配成功: {} {} 匹配 {}", requestMethod, requestPath, api);
                 return true;
@@ -190,7 +190,7 @@ public class GatewayJwtFilter implements GlobalFilter, Ordered {
         }
         return false;
     }
-    
+
     /**
      * 验证通过，构建新请求并放行
      */
