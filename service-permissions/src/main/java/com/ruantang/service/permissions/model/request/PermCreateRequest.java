@@ -30,9 +30,6 @@ public class PermCreateRequest {
     @ApiModelProperty(value = "接口路径")
     private String apiPath;
     
-    @ApiModelProperty(value = "权限作用域（PLATFORM:平台角色/TENANT:租户角色/ALL:通用）")
-    private String permScope;
-    
     @ApiModelProperty(value = "权限描述")
     private String permsDescription;
 } 

@@ -17,6 +17,6 @@ public interface RelUserRolesMapper extends BaseMapper<RelUserRoles> {
      * @param roleId 角色ID
      * @return 删除的记录数
      */
-    @Delete("DELETE FROM rel_user_roles WHERE roles_id = #{roleId}")
+    @Delete("DELETE FROM rel_user_roles WHERE role_id = #{roleId}")
     int deleteByRoleId(@Param("roleId") Long roleId);
 }

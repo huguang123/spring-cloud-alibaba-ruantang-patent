@@ -52,6 +52,11 @@ public class ConfigPermNode {
      * 是否基础权限（0=自定义 1=系统预置）
      */
     private Integer isBasic;
+
+    /**
+     * 排序号
+     */
+    private Integer sort;
     
     /**
      * 创建时间

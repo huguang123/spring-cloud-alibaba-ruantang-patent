@@ -22,8 +22,14 @@ public class SysUserDTO {
     @ApiModelProperty(value = "所属租户ID")
     private Long tenantId;
 
+    @ApiModelProperty(value = "租户名称")
+    private String tenantName;
+
     @ApiModelProperty(value = "所属组织ID")
     private Long orgId;
+
+    @ApiModelProperty(value = "组织名称")
+    private String orgName;
 
     @ApiModelProperty(value = "职级")
     private Integer level;

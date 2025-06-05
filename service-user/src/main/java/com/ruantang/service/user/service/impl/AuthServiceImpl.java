@@ -25,6 +25,7 @@ import com.ruantang.service.user.service.AuthService;
 import com.ruantang.service.user.service.PermDataPolicyService;
 import com.ruantang.service.user.service.PermService;
 import com.ruantang.service.user.service.SysRolesService;
+import com.ruantang.service.user.util.DefaultPermissionUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -185,7 +186,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
                                 }
                             } catch (Exception e) {
                                 // 解析权限快照失败，记录日志
-                                System.err.println("Parse permission snapshot failed: " + e.getMessage());
+                                log.error("Parse permission snapshot failed: " + e.getMessage(), e);
                             }
                         }
                     }
@@ -231,6 +232,17 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
             dataPolicies.putAll(allPolicies);
         }
         
+        // 【新增】检查是否为新用户，如果是则分配基础权限
+        if (DefaultPermissionUtil.isNewUser(roleIds, buttons, apis)) {
+            log.info("检测到新用户 [{}]，分配默认基础权限", sysUsers.getLoginName());
+//            DefaultPermissionUtil.assignDefaultPermissions(buttons, apis, dataPolicies);
+            DefaultPermissionUtil.assignDefaultPermissions(buttons, apis);
+
+            // 记录新用户权限分配日志
+            log.info("新用户 [{}] 已分配基础权限: buttons={}, apis={}, dataPolicies={}", 
+                    sysUsers.getLoginName(), buttons, apis, dataPolicies.keySet());
+        }
+        
         // 构建用户权限信息
         Map<String, Object> authMap = new HashMap<>();
         authMap.put("roles", roleNames);
@@ -257,7 +269,7 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
                 }
             } catch (Exception e) {
                 // 获取租户信息失败，记录日志但不影响登录流程
-                System.err.println("Failed to get tenant info: " + e.getMessage());
+                log.error("Failed to get tenant info: " + e.getMessage(), e);
             }
         } else {
             // 无租户ID的情况，设置为游客类型
@@ -290,12 +302,40 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
 
     @Override
     public SysUserDTO register(SysUserRegisterDTO dto) {
-        // 查询是否有相同用户名的用户
-        QueryWrapper<SysUsers> wrapper = new QueryWrapper<>();
-        wrapper.lambda().eq(SysUsers::getLoginName, dto.getLoginName());
-        List<SysUsers> sysUsersList = list(wrapper);
-        if (sysUsersList.size() > 0) {
-            Asserts.fail("帐号已存在");
+        // 优化：使用一个查询检查所有重复项
+        QueryWrapper<SysUsers> duplicateCheckWrapper = new QueryWrapper<>();
+        
+        // 构建OR条件：检查用户名、邮箱、手机号是否已存在
+        duplicateCheckWrapper.lambda()
+                .eq(SysUsers::getLoginName, dto.getLoginName());
+        
+        if (StringUtils.hasText(dto.getUserMail())) {
+            duplicateCheckWrapper.lambda()
+                    .or()
+                    .eq(SysUsers::getUserMail, dto.getUserMail());
+        }
+        
+        if (StringUtils.hasText(dto.getUserPhone())) {
+            duplicateCheckWrapper.lambda()
+                    .or()
+                    .eq(SysUsers::getUserPhone, dto.getUserPhone());
+        }
+        
+        List<SysUsers> existingUsers = list(duplicateCheckWrapper);
+        
+        // 检查具体的重复类型并给出精确的错误信息
+        for (SysUsers existingUser : existingUsers) {
+            if (dto.getLoginName().equals(existingUser.getLoginName())) {
+                Asserts.fail("账号已存在，请更换其他账号");
+            }
+            if (StringUtils.hasText(dto.getUserMail()) && 
+                dto.getUserMail().equals(existingUser.getUserMail())) {
+                Asserts.fail("该邮箱已被注册，请使用其他邮箱");
+            }
+            if (StringUtils.hasText(dto.getUserPhone()) && 
+                dto.getUserPhone().equals(existingUser.getUserPhone())) {
+                Asserts.fail("该手机号已被注册，请使用其他手机号");
+            }
         }
 
         // 数据封装
@@ -305,14 +345,19 @@ public class AuthServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> imple
         sysUsers.setCreateTime(System.currentTimeMillis());
 
         // 将密码进行加密操作
-//        passwordEncoder.
         String encodePassword = passwordEncoder.encode(sysUsers.getPassword());
-        System.out.println(encodePassword);
+        log.info("新用户注册，加密后密码长度: {}", encodePassword.length());
 
         sysUsers.setPassword(encodePassword);
         baseMapper.insert(sysUsers);
+        
+        // 记录注册日志
+        log.info("新用户注册成功: loginName={}, userMail={}, userPhone={}, userId={}", 
+                dto.getLoginName(), dto.getUserMail(), dto.getUserPhone(), sysUsers.getId());
+        
         // 不返回敏感数据
         sysUsers.setPassword("");
+        
         //实现sysUsers映射到sysUserDTO
         SysUserDTO sysUserDTO = new SysUserDTO();
         BeanUtils.copyProperties(sysUsers, sysUserDTO);

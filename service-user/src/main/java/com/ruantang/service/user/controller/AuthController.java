@@ -34,13 +34,12 @@ public class AuthController {
 
     @ApiOperation(value = "logout",notes = "用户登出")
     @PostMapping("/logout")
-    public ApiResult<Object> logout(){
+    public ApiResult<Boolean> logout(){
         Boolean logout = authService.logout();
-
-        if (logout){
-            return ApiResult.success(logout);
-        }else {
-            return ApiResult.failed();
+        if (logout) {
+            return ApiResult.success(true, "注销成功");
+        } else {
+            return ApiResult.failed("注销失败，用户未登录或token已失效");
         }
     }
 

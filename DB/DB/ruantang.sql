@@ -22,6 +22,7 @@ CREATE TABLE `config_perm_node`  (
  `perm_type` tinyint NOT NULL COMMENT '绑定权限类型（0:操作权限 1:数据权限）',
  `perm_id` bigint NULL DEFAULT NULL COMMENT '绑定操作权限ID',
  `data_policy_id` bigint NULL DEFAULT NULL COMMENT '绑定数据权限ID',
+ `sort` int NULL DEFAULT NULL COMMENT '排序号',
  `is_basic` tinyint NULL DEFAULT 0 COMMENT '是否基础权限（0=自定义 1=系统预置）',
  `create_time` bigint NULL DEFAULT NULL COMMENT '创建时间',
  `update_time` bigint NULL DEFAULT NULL COMMENT '更新时间',

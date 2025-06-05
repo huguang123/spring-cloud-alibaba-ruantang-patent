@@ -21,15 +21,15 @@ public class PermUpdateRequest {
     
     @ApiModelProperty(value = "权限编码")
     private String permsCode;
+
+    @ApiModelProperty(value = "权限类型", required = true)
+    private String permType;
     
     @ApiModelProperty(value = "HTTP方法(GET、POST、PUT、DELETE)")
     private String apiMethod;
     
     @ApiModelProperty(value = "接口路径")
     private String apiPath;
-    
-    @ApiModelProperty(value = "权限作用域（PLATFORM:平台角色/TENANT:租户角色/ALL:通用）")
-    private String permScope;
     
     @ApiModelProperty(value = "权限描述")
     private String permsDescription;

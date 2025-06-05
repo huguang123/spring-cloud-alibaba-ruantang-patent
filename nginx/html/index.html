@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 禁止缓存，解决开发环境下的API代理问题 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>软唐知识产权后台管理系统</title>
+    <meta name="description" content="企业级专利管理平台后台管理系统，提供组织架构管理、模板工厂、智能画像等功能" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // 增强版刷新处理 - 解决所有多级路由刷新404问题
+      (function() {
+        // 检查是否正在进行API请求（忽略API请求）
+        if (window.location.pathname.startsWith('/api') || 
+            window.location.pathname.startsWith('/ums') || 
+            window.location.pathname.startsWith('/prom')) {
+          return;
+        }
+        
+        // 检查是否是资源文件请求（忽略资源文件）
+        if (window.location.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico)$/)) {
+          return;
+        }
+        
+        // 多级路由路径检测 - 包含promptengine或其他可能的多级路由
+        const multiLevelPaths = [
+          '/promptengine',
+          '/promptengine/',
+          '/promptengine/domain-config',
+          '/promptengine/template-management',
+          '/promptengine/writer'
+        ];
+        
+        // 检查当前路径是否是多级路由并且不包含重定向标记
+        const currentPath = window.location.pathname;
+        const isMultiLevelPath = multiLevelPaths.some(path => currentPath.startsWith(path));
+        
+        if (isMultiLevelPath && !window.location.search.includes('_redirect_handled')) {
+          // 记录当前完整URL（包括查询参数和哈希）
+          const fullPath = currentPath + window.location.search + window.location.hash;
+          
+          // 保存到sessionStorage
+          sessionStorage.setItem('_spa_redirect_path', fullPath);
+          
+          // 重定向到根路径并添加标记防止循环
+          const hasQuery = window.location.search.length > 0;
+          const redirectUrl = '/' + (hasQuery ? window.location.search + '&' : '?') + '_redirect_handled=1';
+          
+          console.log('检测到多级路由刷新，重定向到:', redirectUrl);
+          window.location.replace(redirectUrl);
+          return;
+        }
+        
+        // 检查是否有重定向标记并恢复路径
+        if (window.location.search.includes('_redirect_handled')) {
+          const savedPath = sessionStorage.getItem('_spa_redirect_path');
+          
+          if (savedPath) {
+            // 移除存储的路径
+            sessionStorage.removeItem('_spa_redirect_path');
+            
+            // 使用history API替换URL，不触发页面刷新
+            setTimeout(function() {
+              console.log('恢复原始路径:', savedPath);
+              history.replaceState(null, document.title, savedPath);
+            }, 100);
+          }
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-61b59666.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vue-4e979bb7.js">
+    <link rel="modulepreload" crossorigin href="/assets/elementPlus-e3fc6f82.js">
+    <link rel="stylesheet" href="/assets/index-c80e52a2.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    
+  </body>
+</html> 

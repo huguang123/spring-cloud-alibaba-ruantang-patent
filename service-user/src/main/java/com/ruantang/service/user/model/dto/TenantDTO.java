@@ -1,5 +1,6 @@
 package com.ruantang.service.user.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
  * 租户DTO
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TenantDTO {
     
     /**

@@ -75,6 +75,9 @@ public class PermNodeTreeDTO {
         
         @ApiModelProperty(value = "绑定数据权限ID")
         private Long dataPolicyId;
+
+        @ApiModelProperty(value = "排序号")
+        private int sort;
         
         @ApiModelProperty(value = "绑定数据权限信息")
         private PermDataPolicyDTO dataPolicyDetail;

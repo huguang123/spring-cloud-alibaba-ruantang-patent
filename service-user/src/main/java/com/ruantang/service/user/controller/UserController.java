@@ -6,6 +6,9 @@ import com.ruantang.entity.sys.SysRoles;
 import com.ruantang.security.util.JwtTokenUtil;
 import com.ruantang.service.user.model.dto.SysUserDTO;
 import com.ruantang.service.user.model.request.UserQueryRequest;
+import com.ruantang.service.user.model.request.UserUpdateRequest;
+import com.ruantang.service.user.model.request.PasswordUpdateRequest;
+import com.ruantang.service.user.model.request.AccountDeactivateRequest;
 import com.ruantang.service.user.service.SysRolesService;
 import com.ruantang.service.user.service.SysUserService;
 import io.swagger.annotations.Api;
@@ -13,6 +16,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
@@ -122,5 +126,119 @@ public class UserController {
             @ApiParam(value = "用户ID", required = true)
             @PathVariable("id") Long id) {
         return SysUserService.deleteUserById(id);
+    }
+    
+    /**
+     * 更新用户基本信息(这个接口允许其他用户更新对应用户信息【暂时不暴露到前端使用】)
+     * 只允许修改非敏感的基本信息，如用户名、职级、性别、微信、QQ等
+     * 
+     * @param request 用户信息更新请求
+     * @return 更新结果
+     */
+    @ApiOperation("更新用户基本信息")
+    @PutMapping("/update-info")
+    public ApiResult<Boolean> updateUserInfo(@Valid @RequestBody UserUpdateRequest request) {
+        return SysUserService.updateUserInfo(request);
+    }
+    
+    /**
+     * 修改当前用户密码
+     * 
+     * @param request 密码修改请求
+     * @return 修改结果
+     */
+    @ApiOperation("修改当前用户密码")
+    @PutMapping("/update-password")
+    public ApiResult<Boolean> updatePassword(@Valid @RequestBody PasswordUpdateRequest request) {
+        // 获取当前用户ID
+        Long currentUserId = getCurrentUserId();
+        if (currentUserId == null) {
+            return ApiResult.failed("无法获取当前用户信息");
+        }
+        
+        return SysUserService.updatePassword(request, currentUserId);
+    }
+    
+    /**
+     * 获取当前用户的个人资料
+     * 
+     * @return 个人资料信息
+     */
+    @ApiOperation("获取当前用户的个人资料")
+    @GetMapping("/profile")
+    public ApiResult<SysUserDTO> getUserProfile() {
+        Long currentUserId = getCurrentUserId();
+        if (currentUserId == null) {
+            return ApiResult.failed("无法获取当前用户信息");
+        }
+        
+        return SysUserService.getUserById(currentUserId);
+    }
+    
+    /**
+     * 更新当前用户的个人资料
+     * 
+     * @param request 用户信息更新请求
+     * @return 更新结果
+     */
+    @ApiOperation("更新当前用户的个人资料")
+    @PutMapping("/profile")
+    public ApiResult<Boolean> updateUserProfile(@Valid @RequestBody UserUpdateRequest request) {
+        // 获取当前用户ID，确保只能修改自己的信息
+        Long currentUserId = getCurrentUserId();
+        if (currentUserId == null) {
+            return ApiResult.failed("无法获取当前用户信息");
+        }
+        
+        // 设置为当前用户ID，防止越权修改
+        request.setId(currentUserId);
+        
+        return SysUserService.updateUserInfo(request);
+    }
+    
+    /**
+     * 账户注销 - 用户主动删除自己的账户
+     * 这是一个危险操作，需要用户确认身份和意图
+     * 
+     * @param request 账户注销请求
+     * @return 注销结果
+     */
+    @ApiOperation("账户注销 - 用户主动删除自己的账户")
+    @PostMapping("/deactivate-account")
+    public ApiResult<Boolean> deactivateAccount(@Valid @RequestBody AccountDeactivateRequest request) {
+        // 获取当前用户ID
+        Long currentUserId = getCurrentUserId();
+        if (currentUserId == null) {
+            return ApiResult.failed("无法获取当前用户信息");
+        }
+        
+        return SysUserService.deactivateAccount(request, currentUserId);
+    }
+    
+    /**
+     * 从Token中获取当前用户ID
+     * 
+     * @return 当前用户ID
+     */
+    private Long getCurrentUserId() {
+        try {
+            // 从请求头获取token
+            String token = request.getHeader(tokenHeader);
+            if (token != null && token.startsWith(tokenPrefix)) {
+                token = token.substring(tokenPrefix.length());
+            }
+
+            // 从token中获取用户名
+            String username = jwtTokenUtil.getUserNameFromToken(token);
+            if (username == null) {
+                return null;
+            }
+
+            // 根据用户名获取用户信息
+            SysUserDTO userInfo = SysUserService.getUserByUsername(username);
+            return userInfo != null ? userInfo.getId() : null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 } 

@@ -3,6 +3,7 @@ package com.ruantang.service.prompt.service;
 import com.ruantang.service.prompt.model.DocGenerateRequest;
 import com.ruantang.service.prompt.model.DocGenerateResponse;
 import com.ruantang.service.prompt.model.DocSectionTemplateDTO;
+import com.ruantang.service.prompt.model.DocWordExportRequest;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -21,4 +22,12 @@ public interface DocGenerateService {
 
     CompletableFuture<DocGenerateResponse.DocSection> processSectionAsync(DocSectionTemplateDTO sectionTemplate,
                                                                           DocGenerateRequest request);
+    
+    /**
+     * 导出Word文档
+     *
+     * @param request Word导出请求
+     * @return Word文档字节数组
+     */
+    byte[] exportWordDocument(DocWordExportRequest request);
 } 

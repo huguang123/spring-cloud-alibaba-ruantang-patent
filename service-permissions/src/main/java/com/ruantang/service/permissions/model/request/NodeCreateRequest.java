@@ -34,6 +34,9 @@ public class NodeCreateRequest {
     
     @ApiModelProperty(value = "绑定数据权限ID(当permType=1时必填)")
     private Long dataPolicyId;
+
+    @ApiModelProperty(value = "排序序号")
+    private Integer sort;
     
     @ApiModelProperty(value = "是否基础权限(0=自定义 1=系统预置)")
     private Integer isBasic = 0;
