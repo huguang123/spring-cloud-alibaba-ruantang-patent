@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: service-deadline  # 这个值决定了从Nacos加载的dataId
+  cloud:
+    nacos:
+      #      server-addr: nacos:8848 # Docker专用访问宿主机的地址
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      discovery:
+        namespace: ${nacos.namespace:default-namespace-id}  # 使用动态配置
+      config:
+        namespace: ${nacos.namespace:default-namespace-id}  # 使用动态配置
+        group: DEFAULT_GROUP
+        file-extension: yaml  # 关键配置，指定加载yaml格式
+        refresh-enabled: true  # 启用配置动态刷新
+  config:
+    import: optional:nacos:${spring.application.name}-${env}.yaml  # 使用动态配置
+server:
+  port: 9220
+
+logging:
+  level:
+    com.alibaba.nacos: debug
+    com.alibaba.cloud.nacos: DEBUG
+    org.springframework.cloud.context.config: TRACE
+    org.springframework.cloud.commons: DEBUG
+
+# 定义动态配置的默认值
+nacos:
+  namespace: 103c85e3-4fa2-43b4-857d-daf3dab6d080  # 开发环境的namespace ID
+env: dev  # 定义环境标识
+
+

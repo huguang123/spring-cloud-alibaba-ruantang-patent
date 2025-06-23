@@ -19,6 +19,7 @@ import java.util.List;
  * @author knox
  * @since 2020/7/16
  */
+
 public abstract class BaseSwaggerConfig {
 
     /**

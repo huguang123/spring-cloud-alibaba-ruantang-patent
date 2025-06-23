@@ -17,7 +17,7 @@ spring:
   config:
     import: optional:nacos:${spring.application.name}-${env}.yaml  # 使用动态配置
 server:
-  port: 9400
+  port: 9700
 
 logging:
   level:

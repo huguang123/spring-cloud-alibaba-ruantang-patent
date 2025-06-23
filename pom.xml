@@ -26,6 +26,14 @@
         <module>service-tenant</module>
         <module>service-permissions</module>
         <module>service-organization</module>
+        <module>service-matter-core</module>
+        <module>service-matter-workflow</module>
+        <module>service-task</module>
+        <module>service-deadline</module>
+        <module>service-notification</module>
+        <module>service-participant</module>
+        <module>service-document</module>
+        <module>service-official</module>
     </modules>
 
     <!--统一版本控制-->

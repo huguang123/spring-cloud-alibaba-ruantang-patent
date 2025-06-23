@@ -17,7 +17,7 @@ spring:
     import: optional:nacos:${spring.application.name}.yaml
 
 server:
-  port: 9700
+  port: 9710
 
 logging:
   level:

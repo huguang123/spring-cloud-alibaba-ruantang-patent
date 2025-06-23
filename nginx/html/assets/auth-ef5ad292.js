@@ -1,0 +1,1 @@
+import{s}from"./request-811deccb.js";const a=()=>s({url:"/ums/api/user/users/profile",method:"GET"}),e=a=>s({url:"/ums/api/user/users/profile",method:"PUT",data:a}),u=a=>s({url:"/ums/api/user/users/update-password",method:"PUT",data:a}),r=a=>s({url:"/ums/api/user/users/deactivate-account",method:"POST",data:a});export{u as c,r as d,a as g,e as u};
