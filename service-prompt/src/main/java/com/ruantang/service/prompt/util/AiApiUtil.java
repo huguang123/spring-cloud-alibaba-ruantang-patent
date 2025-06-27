@@ -120,4 +120,91 @@ public class AiApiUtil {
 
         return null;
     }
+
+
+    // 新增支持上下文的API调用方法
+    public String generateContentWithContext(String prompt, String context) {
+        log.info("调用AI接口(带上下文)，提示词：{}，上下文长度：{}", prompt, context.length());
+
+        // 复用原有的API轮询逻辑
+        List<AiApiConfig.AiApi> apis = aiApiConfig.getApis();
+        if (apis == null || apis.isEmpty()) {
+            log.error("未配置有效的AI API");
+            return null;
+        }
+
+        int apiCount = apis.size();
+        for (int i = 0; i < apiCount; i++) {
+            int currentIndex = currentApiIndex.getAndIncrement();
+            int index = currentIndex % apiCount;
+            AiApiConfig.AiApi api = apis.get(index);
+
+            try {
+                String content = callAiApiWithContext(api, prompt, context);
+                if (content != null) {
+                    return content;
+                }
+            } catch (Exception e) {
+                log.error("调用AI接口[{}]失败", api.getBaseUrl(), e);
+            }
+
+            currentApiIndex.set((currentIndex + 1) % apiCount);
+        }
+
+        log.error("所有AI接口均调用失败");
+        return null;
+    }
+
+    // 新增带上下文的API调用实现
+    private String callAiApiWithContext(AiApiConfig.AiApi api, String prompt, String context) {
+        String url = api.getBaseUrl() + "/v1/chat/completions";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(api.getApiKey());
+
+        // 构建带上下文的消息数组
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "deepseek-chat");
+        requestBody.put("messages", new Object[]{
+                new HashMap<String, String>() {{ // 系统消息提供上下文
+                    put("role", "system");
+                    put("content", context);
+                }},
+                new HashMap<String, String>() {{ // 用户消息提供当前提示词
+                    put("role", "user");
+                    put("content", prompt);
+                }}
+        });
+        log.info("调用AI接口(带上下文)，请求体：{}", requestBody.toString());
+
+        // 发送请求（复用原有请求逻辑）
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    requestEntity,
+                    Map.class
+            );
+
+            // 响应解析复用原有逻辑
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                Map responseBody = response.getBody();
+                if (responseBody.containsKey("choices")) {
+                    List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+                    if (!choices.isEmpty()) {
+                        Map<String, Object> choice = choices.get(0);
+                        Map<String, String> message = (Map<String, String>) choice.get("message");
+                        return message.get("content");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("调用AI接口失败", e);
+        }
+
+        return null;
+    }
 } 

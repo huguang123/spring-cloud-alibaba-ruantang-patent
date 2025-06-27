@@ -30,4 +30,12 @@ public interface DocGenerateService {
      * @return Word文档字节数组
      */
     byte[] exportWordDocument(DocWordExportRequest request);
+
+    /**
+     * 生成文档（包含上下文）
+     *
+     * @param request 带上下文的生成请求
+     * @return 带上下文的生成结果
+     */
+    DocGenerateResponse generateDocWithContext(DocGenerateRequest request);
 } 
