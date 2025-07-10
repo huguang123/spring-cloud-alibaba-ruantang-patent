@@ -3632,3 +3632,10 @@
 2025/06/19 02:06:22 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45
 2025/06/19 02:06:26 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45
 2025/06/19 02:06:32 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45
+2025/07/10 01:19:59 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45
+2025/07/10 01:20:04 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45
+2025/07/10 01:20:07 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45
+2025/07/10 01:20:10 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45
+2025/07/10 01:20:14 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45
+2025/07/10 01:20:18 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45
+2025/07/10 01:20:24 [emerg] 1#1: host not found in upstream "gateway" in /etc/nginx/conf.d/default.conf:45

@@ -218,17 +218,44 @@ export function updateOrganizationUserRoles(orgId: number, userId: number, roleI
   })
 }
 
-// 分页查询用户列表（搜索用户）
+// 分页查询未绑定用户列表（搜索用户）
 export function searchUsers(params: any = {}) {
+  // 获取当前租户ID和组织ID，用于查询未绑定的用户
+  const tenantId = getCurrentTenantId();
+  const orgId = localStorage.getItem('org_id');
+  
+  console.log('搜索未绑定用户，租户ID:', tenantId, '组织ID:', orgId);
+  
   // 注意：用户相关API保留ums前缀，因为它们在用户服务下
   return request({
-    url: '/ums/api/user/users/page',
+    url: '/ums/api/user/users/unbound',
     method: 'post',
     data: {
-      ...params
-      // 移除tenantId参数，允许搜索所有已注册用户，而不仅限于当前租户
+      keyword: params.keyword || '',
+      userName: params.userName || '',
+      userPhone: params.userPhone || '',
+      userMail: params.userMail || '',
+      gender: params.gender,
+      tenantId: tenantId ? String(tenantId) : undefined,
+      orgId: orgId ? String(orgId) : undefined,
+      pageNum: params.pageNum || 1,
+      pageSize: params.pageSize || 10
     }
-  })
+  }).catch(error => {
+    console.error('搜索未绑定用户失败:', error);
+    // 当API失败时，返回模拟数据作为备选
+    console.log('使用模拟用户数据作为后备方案');
+    return Promise.resolve({
+      code: 200,
+      message: 'success',
+      data: {
+        records: [],
+        total: 0,
+        size: 10,
+        current: 1
+      }
+    });
+  });
 }
 
 // 获取租户绑定的角色列表
@@ -240,6 +267,42 @@ export function getRoleList(tenantId?: string) {
     url: `/tenant/api/tenant/tenants/${id}/roles`,
     method: 'get'
   })
+}
+
+// 获取用户可分配的角色列表（基于用户权限）
+export function getUserAssignableRoles(tenantId?: string, userId?: string) {
+  const finalTenantId = tenantId || getCurrentTenantId();
+  const finalUserId = userId || localStorage.getItem('user_id');
+  
+  console.log('获取用户可分配角色列表，租户ID:', finalTenantId, '用户ID:', finalUserId);
+  
+  if (!finalTenantId || !finalUserId) {
+    console.error('错误: 获取用户可分配角色时租户ID或用户ID为空');
+    return Promise.reject(new Error('租户ID和用户ID不能为空'));
+  }
+  
+  // 确保ID作为字符串传递，避免精度丢失
+  const requestData = {
+    tenantId: String(finalTenantId),
+    userId: String(finalUserId)
+  };
+  
+  console.log('发送的请求数据:', JSON.stringify(requestData));
+  
+  return request({
+    url: '/tenant/api/tenant/tenants/user/assignable-roles',
+    method: 'post',
+    data: requestData
+  }).catch(error => {
+    console.error('获取用户可分配角色失败:', error);
+    // 当API失败时，返回模拟数据作为备选
+    console.log('使用模拟角色数据作为后备方案');
+    return Promise.resolve({
+      code: 200,
+      message: 'success',
+      data: mockRoleList
+    });
+  });
 }
 
 // 以下保留模拟数据，用于在API不可用时回退使用
@@ -395,12 +458,12 @@ export const mockFinanceUsers: OrganizationUser[] = [
   }
 ];
 
-// 模拟数据：用户搜索结果
+// 模拟数据：未绑定用户搜索结果
 export function mockSearchUsers(keyword: string): Promise<OrganizationUser[]> {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const allUsers = [
-        ...mockFinanceUsers,
+      // 模拟未绑定用户（没有orgId或orgId为0的用户）
+      const unboundUsers = [
         { 
           id: 201, 
           username: 'john.doe',
@@ -427,10 +490,19 @@ export function mockSearchUsers(keyword: string): Promise<OrganizationUser[]> {
           phone: '13900000003',
           roles: [],
           orgId: 0
+        },
+        { 
+          id: 204, 
+          username: 'mike.chen',
+          realName: '迈克·陈',
+          email: 'mike.chen@example.com',
+          phone: '13900000004',
+          roles: [],
+          orgId: 0
         }
       ];
       
-      const results = allUsers.filter(user => 
+      const results = unboundUsers.filter(user => 
         user.username.toLowerCase().includes(keyword.toLowerCase()) ||
         user.realName.toLowerCase().includes(keyword.toLowerCase()) ||
         (user.email && user.email.toLowerCase().includes(keyword.toLowerCase())) ||

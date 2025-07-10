@@ -32,6 +32,14 @@ public interface SysUserService extends IService<SysUsers> {
     ApiResult<Page<SysUserDTO>> queryUserPage(UserQueryRequest request);
     
     /**
+     * 查询未绑定租户和组织的用户
+     * 
+     * @param request 查询请求
+     * @return 未绑定用户的分页列表
+     */
+    ApiResult<Page<SysUserDTO>> queryUnboundUsers(UserQueryRequest request);
+    
+    /**
      * 根据ID查询用户
      * 
      * @param id 用户ID

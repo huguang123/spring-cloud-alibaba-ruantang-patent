@@ -11,6 +11,7 @@ import com.ruantang.service.tenant.model.request.TenantCreateRequest;
 import com.ruantang.service.tenant.model.request.TenantQueryRequest;
 import com.ruantang.service.tenant.model.request.TenantRoleVerifyRequest;
 import com.ruantang.service.tenant.model.request.TenantUpdateRequest;
+import com.ruantang.service.tenant.model.request.TenantUserRolesRequest;
 
 import java.util.List;
 
@@ -91,6 +92,14 @@ public interface TenantService {
      * @return 角色列表
      */
     ApiResult<List<TenantRoleDTO>> getTenantRoles(Long tenantId);
+    
+    /**
+     * 获取用户在特定租户下可以分配的角色权限
+     * 
+     * @param request 查询请求
+     * @return 用户可分配的角色列表
+     */
+    ApiResult<List<TenantRoleDTO>> getUserAssignableTenantRoles(TenantUserRolesRequest request);
     
     /**
      * 验证租户角色权限状态

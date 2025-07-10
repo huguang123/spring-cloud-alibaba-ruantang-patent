@@ -36,5 +36,14 @@ public interface SysRoleFeignClient {
 
     @GetMapping("/api/perm/roles/type/{roleType}")
     ApiResult<List<SysRolesDTO>> listRolesByType(@PathVariable("roleType") Integer roleType);
+
+    /**
+     * 获取用户绑定的角色列表
+     *
+     * @param userId 用户ID
+     * @return 用户绑定的角色列表
+     */
+    @GetMapping("/api/perm/roles/user/{userId}")
+    ApiResult<List<SysRolesDTO>> getUserRoles(@PathVariable("userId") Long userId);
 }
 

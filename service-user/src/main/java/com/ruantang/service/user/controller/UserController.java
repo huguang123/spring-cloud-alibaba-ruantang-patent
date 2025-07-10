@@ -197,6 +197,19 @@ public class UserController {
     }
     
     /**
+     * 查询未绑定租户和组织的用户列表
+     * 用于组织绑定用户时查询可用的注册用户
+     * 
+     * @param request 查询请求
+     * @return 未绑定用户的分页列表
+     */
+    @ApiOperation("查询未绑定租户和组织的用户列表")
+    @PostMapping("/unbound")
+    public ApiResult<Page<SysUserDTO>> getUnboundUsers(@RequestBody UserQueryRequest request) {
+        return SysUserService.queryUnboundUsers(request);
+    }
+    
+    /**
      * 账户注销 - 用户主动删除自己的账户
      * 这是一个危险操作，需要用户确认身份和意图
      * 

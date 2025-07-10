@@ -130,6 +130,60 @@ public class SysUserServiceImpl extends ServiceImpl<SysUsersMapper, SysUsers> im
     }
     
     @Override
+    public ApiResult<Page<SysUserDTO>> queryUnboundUsers(UserQueryRequest request) {
+        // 构建查询条件
+        LambdaQueryWrapper<SysUsers> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 核心条件：租户ID和组织ID都为空
+        queryWrapper.isNull(SysUsers::getTenantId);
+        queryWrapper.isNull(SysUsers::getOrgId);
+        
+        // 关键字搜索（用户名、手机号、邮箱模糊查询）
+        if (StringUtils.hasText(request.getKeyword())) {
+            queryWrapper.and(wrapper -> wrapper
+                    .like(SysUsers::getUserName, request.getKeyword())
+                    .or()
+                    .like(SysUsers::getUserPhone, request.getKeyword())
+                    .or()
+                    .like(SysUsers::getUserMail, request.getKeyword())
+            );
+        }
+        
+        // 精确查询条件
+        if (StringUtils.hasText(request.getUserName())) {
+            queryWrapper.eq(SysUsers::getUserName, request.getUserName());
+        }
+        
+        if (StringUtils.hasText(request.getUserPhone())) {
+            queryWrapper.eq(SysUsers::getUserPhone, request.getUserPhone());
+        }
+        
+        if (StringUtils.hasText(request.getUserMail())) {
+            queryWrapper.eq(SysUsers::getUserMail, request.getUserMail());
+        }
+        
+        if (request.getGender() != null) {
+            queryWrapper.eq(SysUsers::getGender, request.getGender());
+        }
+        
+        // 按创建时间降序排序
+        queryWrapper.orderByDesc(SysUsers::getCreateTime);
+        
+        // 分页查询
+        Page<SysUsers> page = new Page<>(request.getPageNum(), request.getPageSize());
+        Page<SysUsers> userPage = baseMapper.selectPage(page, queryWrapper);
+        
+        // 转换结果
+        Page<SysUserDTO> resultPage = new Page<>(userPage.getCurrent(), userPage.getSize(), userPage.getTotal());
+        List<SysUserDTO> userDTOList = userPage.getRecords().stream()
+                .map(this::convertToDTOPage)
+                .collect(Collectors.toList());
+        resultPage.setRecords(userDTOList);
+        
+        return ApiResult.success(resultPage);
+    }
+    
+    @Override
     public ApiResult<SysUserDTO> getUserById(Long id) {
         SysUsers user = baseMapper.selectById(id);
         if (user == null) {

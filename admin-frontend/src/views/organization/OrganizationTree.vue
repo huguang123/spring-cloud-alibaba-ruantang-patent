@@ -266,11 +266,11 @@
     >
       <div v-if="!isEditMember" class="search-user-section">
         <div class="search-header">
-          <h4>搜索已注册用户</h4>
+          <h4>搜索未绑定用户</h4>
         </div>
         <el-input
           v-model="userSearchKeyword"
-          placeholder="输入姓名、电话或邮箱搜索用户..."
+          placeholder="输入姓名、电话或邮箱搜索未绑定用户..."
           clearable
           class="search-input"
           @keyup.enter="searchUser"
@@ -400,6 +400,7 @@ import {
   updateOrganizationUserRoles,
   searchUsers,
   getRoleList,
+  getUserAssignableRoles,
   getCurrentTenantId,
   // 模拟数据
   mockOrganizationTree,
@@ -541,26 +542,27 @@ const loadOrganizationTree = async () => {
   }
 };
 
-// 加载角色列表
+// 加载角色列表（获取当前用户可分配的角色）
 const loadRoleList = async () => {
   try {
-    // 调用真实API获取角色列表
-    const res = await getRoleList();
-    if (res && res.data) {
+    // 调用新的API获取用户可分配的角色列表，提高权限安全性
+    const res = await getUserAssignableRoles() as unknown as ApiResponse<any[]>;
+    if (res && res.code === 200 && res.data) {
+      // 根据tenant_api文档，新接口返回的是TenantRoleDTO格式
       rolesList.value = res.data.map((role: any) => ({
         id: role.roleId,
         rolesCode: role.rolesCode,
         rolesName: role.rolesName,
         rolesType: role.rolesType
       }));
-      console.log('获取角色列表成功:', rolesList.value);
+      console.log('获取用户可分配角色列表成功:', rolesList.value);
     } else {
-      console.warn('获取角色列表失败，使用模拟数据:', res);
+      console.warn('获取用户可分配角色列表失败，使用模拟数据:', res);
       // 使用模拟数据作为备选
       rolesList.value = mockRoleList;
     }
   } catch (error) {
-    handleApiError(error, '获取角色列表失败');
+    handleApiError(error, '获取用户可分配角色列表失败');
     // 使用模拟数据作为备选
     rolesList.value = mockRoleList;
   }
@@ -1050,7 +1052,7 @@ const handleRemoveMember = (member: OrganizationUser) => {
   });
 };
 
-// 搜索用户
+// 搜索未绑定用户
 const searchUser = async () => {
   if (!userSearchKeyword.value) {
     ElMessage.warning('请输入搜索关键字');
@@ -1059,15 +1061,16 @@ const searchUser = async () => {
   
   userSearchLoading.value = true;
   try {
-    // 调用真实API进行用户搜索，不再传入tenantId参数
+    // 调用新的API搜索未绑定租户和组织的用户
     const res = await searchUsers({
       keyword: userSearchKeyword.value,
       pageNum: 1,
       pageSize: 10
-      // 移除tenantId参数，允许搜索所有已注册用户
-    });
+    }) as unknown as ApiResponse<{records: any[], total: number}>;
     
-    if (res && res.data && res.data.records) {
+    console.log('搜索未绑定用户API返回:', res);
+    
+    if (res && res.code === 200 && res.data && res.data.records) {
       // 处理API返回的数据
       userSearchResults.value = res.data.records.map((user: any) => ({
         id: user.id,
@@ -1078,16 +1081,16 @@ const searchUser = async () => {
         roles: [],
         orgId: user.orgId || 0
       }));
-      console.log('搜索用户成功:', userSearchResults.value);
+      console.log('搜索未绑定用户成功:', userSearchResults.value);
     } else {
-      console.warn('搜索用户失败，使用模拟数据:', res);
+      console.warn('搜索未绑定用户失败，使用模拟数据:', res);
       // 使用模拟数据
       const results = await mockSearchUsers(userSearchKeyword.value);
       userSearchResults.value = results;
     }
   } catch (error) {
-    console.error('搜索用户失败', error);
-    handleApiError(error, '搜索用户失败');
+    console.error('搜索未绑定用户失败', error);
+    handleApiError(error, '搜索未绑定用户失败');
     userSearchResults.value = [];
   } finally {
     userSearchLoading.value = false;

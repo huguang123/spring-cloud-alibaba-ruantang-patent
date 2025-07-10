@@ -5,6 +5,7 @@ import com.ruantang.service.prompt.model.DocGenerateRequest;
 import com.ruantang.service.prompt.model.DocGenerateResponse;
 import com.ruantang.service.prompt.model.DocWordExportRequest;
 import com.ruantang.service.prompt.service.DocGenerateService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +24,7 @@ import java.util.Base64;
 /**
  * 文档生成Controller
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/doc-generate")
 public class DocGenerateController {
@@ -47,28 +49,21 @@ public class DocGenerateController {
     public ResponseEntity<byte[]> exportWordDocument(@RequestBody DocWordExportRequest request) {
         try {
             byte[] wordData = docGenerateService.exportWordDocument(request);
-            String fileName = generateFileName(request.getTitle(), request.getFileName());
+            String fileName = generateFileName(request.getTitle(), request.getTitle());
+            log.info("文档导出成功，文件名：{}", fileName);
 
             HttpHeaders headers = new HttpHeaders();
             // 设置正确的MIME类型
             headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
 
-            // 使用RFC 5987标准编码文件名
-            String encodedFileName = "=?UTF-8?B?" +
-                    Base64.getEncoder().encodeToString(fileName.getBytes(StandardCharsets.UTF_8)) +
-                    "?=";
-
-            headers.setContentDisposition(
-                    ContentDisposition.builder("attachment")
-                            .filename(encodedFileName)
-                            .build()
-            );
+            // 使用 ContentDisposition 工具类构建标准格式的 Content-Disposition 头部
+            ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
+                    .filename(fileName)
+                    .build();
+            headers.setContentDisposition(contentDisposition);
 
             headers.setContentLength(wordData.length);
-
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(wordData);
+            return ResponseEntity.ok().headers(headers).body(wordData);
 
         } catch (Exception e) {
             String errorMsg = "文档导出失败: " + e.getMessage();
@@ -101,6 +96,27 @@ public class DocGenerateController {
         }
 
         // 确保文件名是有效的
-        return fileName.replaceAll("[^\\w\\.\\-]", "_"); // 只保留字母、数字、下划线、点和连字符
+        return fileName;
+    }
+
+    /**
+     * 编码文件名以符合 Content-Disposition 标准
+     *
+     * @param fileName 文件名
+     * @return 编码后的文件名
+     */
+    private String encodeFileNameForContentDisposition(String fileName) {
+        try {
+            // RFC 6266 标准格式
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.name())
+                    .replaceAll("\\+", "%20"); // 替换空格编码
+
+            // 构建标准格式的文件名
+            return "filename=\"" + encodedFileName + "\"; " +
+                    "filename*=UTF-8''" + encodedFileName;
+        } catch (Exception e) {
+            log.error("文件名编码失败: {}", e.getMessage());
+            return fileName; // 如果编码失败，返回原始文件名
+        }
     }
 } 

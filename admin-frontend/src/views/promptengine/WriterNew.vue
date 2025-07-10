@@ -120,7 +120,7 @@
     <el-card v-if="hasContent && !loading">
       <template #header>
         <div class="flex justify-between">
-          <h2 class="text-lg font-semibold">技术交底书预览</h2>
+          <h2 class="text-lg font-semibold">{{ documentTitle || '技术交底书预览' }}</h2>
           <div class="flex space-x-2">
             <el-button size="small" @click="exportToWord" :loading="exportLoading">
               <el-icon><Download /></el-icon> 导出Word
@@ -241,6 +241,7 @@ const level3Domains = ref<Domain[]>([]);
 const docTemplates = ref<Template[]>([]);
 const useAI = ref(true);
 const sections = ref<DocumentSection[]>([]);
+const documentTitle = ref('');
 const isEditing = reactive<Record<string, boolean>>({});
 const editingSections = reactive<Record<string, string>>({});
 
@@ -546,6 +547,8 @@ async function generateContent() {
     if (data.code === 200) {
       // 直接使用返回的sections数组
       sections.value = data.data.sections;
+      // 保存后端返回的title
+      documentTitle.value = data.data.title || '技术交底书';
       // 初始化编辑状态
       sections.value.forEach(section => {
         isEditing[section.sectionName] = false;
@@ -656,7 +659,7 @@ async function exportToWord() {
 
   try {
     const exportData = {
-      title: '技术交底书',
+      title: documentTitle.value || '技术交底书',
       sections: sections.value.map((section, index) => ({
         sectionName: section.sectionName,
         content: section.content,
@@ -676,12 +679,34 @@ async function exportToWord() {
 
     // 获取文件名（从响应头中获取）
     const contentDisposition = response.headers.get('Content-Disposition');
-    let fileName = '技术交底书.docx';
+    let fileName = `${documentTitle.value || '技术交底书'}.docx`;
+    
     if (contentDisposition) {
-      const match = contentDisposition.match(/filename="(.+)"/);
-      if (match) {
-        fileName = match[1];
+      // 优先尝试解析RFC 5987格式的filename*=UTF-8''...
+      const rfc5987Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/);
+      if (rfc5987Match) {
+        try {
+          fileName = decodeURIComponent(rfc5987Match[1]);
+        } catch (e) {
+          console.warn('解码RFC 5987格式文件名失败:', e);
+        }
+      } else {
+        // fallback到传统的filename="..."格式
+        const traditionalMatch = contentDisposition.match(/filename="([^"]+)"/);
+        if (traditionalMatch) {
+          try {
+            fileName = decodeURIComponent(traditionalMatch[1]);
+          } catch (e) {
+            // 如果解码失败，直接使用原始文件名
+            fileName = traditionalMatch[1];
+          }
+        }
       }
+      
+      // 基本清理
+      fileName = fileName.trim();
+      // 移除文件名末尾可能的特殊字符，包括反斜杠和引号
+      fileName = fileName.replace(/[_\s\\\"]+$/, '');
     }
 
     const blob = await response.blob();

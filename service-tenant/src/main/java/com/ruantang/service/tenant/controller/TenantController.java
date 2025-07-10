@@ -11,6 +11,7 @@ import com.ruantang.service.tenant.model.request.TenantCreateRequest;
 import com.ruantang.service.tenant.model.request.TenantQueryRequest;
 import com.ruantang.service.tenant.model.request.TenantRoleVerifyRequest;
 import com.ruantang.service.tenant.model.request.TenantUpdateRequest;
+import com.ruantang.service.tenant.model.request.TenantUserRolesRequest;
 import com.ruantang.service.tenant.service.TenantService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -147,6 +148,19 @@ public class TenantController {
             @ApiParam(value = "租户ID", required = true)
             @PathVariable("tenantId") Long tenantId) {
         return tenantService.getTenantRoles(tenantId);
+    }
+    
+    /**
+     * 获取用户在特定租户下可以分配的角色权限
+     * 
+     * @param request 查询请求
+     * @return 用户可分配的角色列表
+     */
+    @PostMapping("/user/assignable-roles")
+    @ApiOperation("获取用户在特定租户下可以分配的角色权限")
+    public ApiResult<List<TenantRoleDTO>> getUserAssignableTenantRoles(
+            @Valid @RequestBody TenantUserRolesRequest request) {
+        return tenantService.getUserAssignableTenantRoles(request);
     }
     
     /**

@@ -1,5 +1,7 @@
 package com.ruantang.service.prompt.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruantang.service.prompt.config.AiApiConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class AiApiUtil {
     private RestTemplate restTemplate;
 
     private final AtomicInteger currentApiIndex = new AtomicInteger(0); // 当前使用的API索引
+
+    // 在类中添加静态 ObjectMapper
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 调用AI接口生成内容
@@ -176,7 +181,15 @@ public class AiApiUtil {
                     put("content", prompt);
                 }}
         });
-        log.info("调用AI接口(带上下文)，请求体：{}", requestBody.toString());
+
+        try {
+            String messagesJson = objectMapper.writeValueAsString(requestBody.get("messages"));
+            log.info("调用AI接口(带上下文)，请求体：{}", messagesJson);
+        } catch (JsonProcessingException e) {
+            log.error("序列化请求体失败", e);
+            // 回退方案：输出原始对象类型
+            log.info("调用AI接口(带上下文)，请求体（原始类型）：{}", requestBody.get("messages").getClass().getName());
+        }
 
         // 发送请求（复用原有请求逻辑）
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);

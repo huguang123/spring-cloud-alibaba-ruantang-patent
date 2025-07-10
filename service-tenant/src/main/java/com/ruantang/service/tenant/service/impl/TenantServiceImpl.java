@@ -18,6 +18,7 @@ import com.ruantang.service.tenant.model.request.TenantCreateRequest;
 import com.ruantang.service.tenant.model.request.TenantQueryRequest;
 import com.ruantang.service.tenant.model.request.TenantRoleVerifyRequest;
 import com.ruantang.service.tenant.model.request.TenantUpdateRequest;
+import com.ruantang.service.tenant.model.request.TenantUserRolesRequest;
 import com.ruantang.service.tenant.repository.TenantRelTemplateRoleRepository;
 import com.ruantang.service.tenant.repository.TenantRepository;
 import com.ruantang.service.tenant.service.TenantService;
@@ -335,6 +336,107 @@ public class TenantServiceImpl implements TenantService {
             
             // 遍历角色，构建返回数据
             for (TenantRelTemplateRole templateRole : templateRoles) {
+                ApiResult<SysRolesDTO> roleResult = roleFeignClient.getRoleById(templateRole.getRoleId());
+                if (roleResult == null || roleResult.getCode() != 200 || roleResult.getData() == null) {
+                    continue;
+                }
+                
+                SysRolesDTO role = roleResult.getData();
+                
+                TenantRoleDTO tenantRoleDTO = new TenantRoleDTO();
+                tenantRoleDTO.setRoleId(role.getId());
+                tenantRoleDTO.setRolesCode(role.getRolesCode());
+                tenantRoleDTO.setRolesName(role.getRolesName());
+                tenantRoleDTO.setRolesType(role.getRolesType());
+                tenantRoleDTO.setRolesTypeName(role.getRolesTypeName());
+                tenantRoleDTO.setRolesDescription(role.getRolesDescription());
+                tenantRoleDTO.setTemplateId(template.getId());
+                tenantRoleDTO.setTemplateName(template.getTemplateName());
+                tenantRoleDTO.setIsInherit(templateRole.getIsInherit());
+                
+                resultRoles.add(tenantRoleDTO);
+            }
+        }
+        
+        return ApiResult.success(resultRoles);
+    }
+    
+    @Override
+    public ApiResult<List<TenantRoleDTO>> getUserAssignableTenantRoles(TenantUserRolesRequest request) {
+        // 检查租户是否存在
+        Tenant existingTenant = tenantRepository.getTenantById(request.getTenantId());
+        if (existingTenant == null) {
+            return ApiResult.failed("租户不存在");
+        }
+        
+        // 获取用户的角色列表
+        ApiResult<List<SysRolesDTO>> userRolesResult = roleFeignClient.getUserRoles(request.getUserId());
+        if (userRolesResult == null || userRolesResult.getCode() != 200) {
+            return ApiResult.failed("获取用户角色失败");
+        }
+        
+        List<SysRolesDTO> userRoles = userRolesResult.getData();
+        if (userRoles == null || userRoles.isEmpty()) {
+            return ApiResult.success(new ArrayList<>());
+        }
+        
+        // 检查用户是否是超级管理员或管理员
+        boolean isSuperAdmin = userRoles.stream()
+                .anyMatch(role -> "ROLE_SUPER_ADMIN".equals(role.getRolesCode()));
+        
+        boolean isAdmin = userRoles.stream()
+                .anyMatch(role -> role.getRolesCode() != null && role.getRolesCode().startsWith("ROLE_ADMIN"));
+        
+        // 如果是超级管理员或管理员，返回租户的所有角色
+        if (isSuperAdmin || isAdmin) {
+            return getTenantRoles(request.getTenantId());
+        }
+        
+        // 普通用户：只返回用户拥有的角色中，在租户模板中存在的角色
+        // 查询租户绑定的模板
+        List<TenantRelTenantTemplate> tenantTemplates = tenantRepository.getTenantTemplates(request.getTenantId());
+        if (tenantTemplates.isEmpty()) {
+            return ApiResult.success(new ArrayList<>());
+        }
+        
+        // 获取所有模板ID
+        List<Long> templateIds = tenantTemplates.stream()
+                .map(TenantRelTenantTemplate::getTemplateId)
+                .collect(Collectors.toList());
+        
+        // 批量查询模板信息
+        List<TenantTemplate> templates = tenantTemplateMapper.selectBatchIds(templateIds);
+        Map<Long, TenantTemplate> templateMap = templates.stream()
+                .collect(Collectors.toMap(TenantTemplate::getId, template -> template));
+        
+        // 获取用户角色ID集合
+        Set<Long> userRoleIds = userRoles.stream()
+                .map(SysRolesDTO::getId)
+                .collect(Collectors.toSet());
+        
+        // 保存结果
+        List<TenantRoleDTO> resultRoles = new ArrayList<>();
+        
+        // 遍历模板，查询每个模板的角色
+        for (TenantRelTenantTemplate tenantTemplate : tenantTemplates) {
+            TenantTemplate template = templateMap.get(tenantTemplate.getTemplateId());
+            if (template == null) {
+                continue;
+            }
+            
+            // 获取模板关联的角色
+            List<TenantRelTemplateRole> templateRoles = templateRoleRepository.listRolesByTemplateId(template.getId());
+            if (templateRoles.isEmpty()) {
+                continue;
+            }
+            
+            // 遍历角色，只返回用户拥有的角色
+            for (TenantRelTemplateRole templateRole : templateRoles) {
+                // 检查用户是否拥有这个角色
+                if (!userRoleIds.contains(templateRole.getRoleId())) {
+                    continue;
+                }
+                
                 ApiResult<SysRolesDTO> roleResult = roleFeignClient.getRoleById(templateRole.getRoleId());
                 if (roleResult == null || roleResult.getCode() != 200 || roleResult.getData() == null) {
                     continue;
